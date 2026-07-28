@@ -21,7 +21,7 @@
 
         button {
             margin: 5px;
-            padding: 10px;
+            padding: 15px;
             background-color: rgb(251, 184, 41);
             color: black;
             border: none;
@@ -49,30 +49,38 @@
     <div>
         <label>S</label>
         <audio controls src="Accentuate/sop-accentuate.m4a" preload="auto"></audio>
-        <label>L</label>
-        <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
-        <label>R</label>
     </div>
     <div>
         <label>A</label>
         <audio controls src="Accentuate/alto-accentuate.m4a" preload="auto"></audio>
-        <label>L</label>
-        <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
-        <label>R</label>
     </div>
     <div>
         <label>T</label>
         <audio controls src="Accentuate/tenor-accentuate.m4a" preload="auto"></audio>
-        <label>L</label>
-        <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
-        <label>R</label>
     </div>
     <div>
         <label>B</label>
         <audio controls src="Accentuate/bass-accentuate.m4a" preload="auto"></audio>
-        <label>L</label>
+    </div>
+    <div>
+        <label>S Left</label>
+        <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
+        <label>Right</label>
+    </div>
+    <div>
+        <label>A Left</label>
+        <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
+        <label>Right</label>
+    </div>
+    <div>
+        <label>T Left</label>
+        <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
+        <label>Right</label>
+    </div>
+    <div>
+        <label>B Left</label>
         <input type="range" class="pan" min="-1" max="1" value="-1" step="0.1">
-        <label>R</label>
+        <label>Right</label>
     </div>
     <div>
         <button id="presetSop">Soprano</button>
@@ -81,11 +89,9 @@
         <button id="presetBass">Bass</button>
     </div>
     <div>
-        <button id="presetChoirStereo">Choir Stereo</button>
-        <button id="presetEmilyStereo">Emily Stereo</button>
-    </div>
-    <div>
-        <button id="presetFullMono">All Mono</button>
+        <button id="presetChoirStereo">Stereo (Choir)</button>
+        <button id="presetEmilyStereo">Stereo (Leader)</button>
+        <button id="presetFullMono">Mono</button>
     </div>
 </body>
 <script>
