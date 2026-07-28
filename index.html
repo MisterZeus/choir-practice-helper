@@ -19,9 +19,15 @@
             color: black;
         }
 
+        label {
+            color: black;
+            white-space: nowrap;
+        }
+
         button {
+            font-size: 16px;
             margin: 5px;
-            padding: 15px;
+            padding: 5px;
             background-color: rgb(251, 184, 41);
             color: black;
             border: none;
@@ -43,72 +49,120 @@
         <p><b>Please try using earphones for the best Left-Right panning experience!</b></p>
     </div>
     <div>
-        <button id="playAll">Play All</button>
-        <button id="stopAll">Stop All</button>
+        <button id="play">Play</button>
+        <button id="stop" hidden="true">Stop</button>
     </div>
     <div>
-        <label>S</label>
-        <audio controls src="Accentuate/sop-accentuate.m4a" preload="auto"></audio>
+        <label id="progressLabel">
+            <input id="trackProgress" type="range" min="0" max="100" value="0" width="100%">
+        </label>
     </div>
     <div>
-        <label>A</label>
-        <audio controls src="Accentuate/alto-accentuate.m4a" preload="auto"></audio>
+        <label>S
+            <audio src="Accentuate/sop-accentuate.opus" preload="auto"></audio>
+            <button id="muteSoprano">🔊</button>
+            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05">
+            <button id="presetSop" alt="Soprano Hero">🦸</button>
+        </label>
     </div>
     <div>
-        <label>T</label>
-        <audio controls src="Accentuate/tenor-accentuate.m4a" preload="auto"></audio>
+        <label>A
+            <audio src="Accentuate/alto-accentuate.opus" preload="auto"></audio>
+            <button id="muteAlto">🔊</button>
+            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05">
+            <button id="presetAlto" alt="Alto Hero">🦸</button>
+        </label>
     </div>
     <div>
-        <label>B</label>
-        <audio controls src="Accentuate/bass-accentuate.m4a" preload="auto"></audio>
+        <label>T
+            <audio src="Accentuate/tenor-accentuate.opus" preload="auto"></audio>
+            <button id="muteTenor">🔊</button>
+            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05">
+            <button id="presetTenor" alt="Tenor Hero">🦸</button>
+        </label>
     </div>
     <div>
-        <label>S Left</label>
-        <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
-        <label>Right</label>
+        <label>B
+            <audio src="Accentuate/bass-accentuate.opus" preload="auto"></audio>
+            <button id="muteBass">🔊</button>
+            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05">
+            <button id="presetBass" alt="Bass Hero">🦸</button>
+        </label>
     </div>
     <div>
-        <label>A Left</label>
-        <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
-        <label>Right</label>
+        <label>Other Voices Volume
+            <input id="otherVoicesVolume" type="range" class="volume" min="0" max="1" value="0.25" step="0.05">
+        </label>
     </div>
     <div>
-        <label>T Left</label>
-        <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
-        <label>Right</label>
+        <label>S Left
+            <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
+            Right
+        </label>
     </div>
     <div>
-        <label>B Left</label>
-        <input type="range" class="pan" min="-1" max="1" value="-1" step="0.1">
-        <label>Right</label>
+        <label>A Left
+            <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
+            Right
+        </label>
     </div>
     <div>
-        <button id="presetSop">Soprano</button>
-        <button id="presetAlto">Alto</button>
-        <button id="presetTenor">Tenor</button>
-        <button id="presetBass">Bass</button>
+        <label>T Left
+            <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
+            Right
+        </label>
+    </div>
+    <div>
+        <label>B Left
+            <input type="range" class="pan" min="-1" max="1" value="-1" step="0.1">
+            Right
+        </label>
     </div>
     <div>
         <button id="presetChoirStereo">Stereo (Choir)</button>
-        <button id="presetEmilyStereo">Stereo (Leader)</button>
+        <button id="presetLeaderStereo">Stereo (Leader)</button>
         <button id="presetFullMono">Mono</button>
     </div>
 </body>
 <script>
-    const playAllButton = document.getElementById('playAll');
-    const stopAllButton = document.getElementById('stopAll');
+    const playButton = document.getElementById('play');
+    const stopButton = document.getElementById('stop');
+
+    const trackProgressSlider = document.getElementById('trackProgress');
+
+    const muteSopranoButton = document.getElementById('muteSoprano');
+    const muteAltoButton = document.getElementById('muteAlto');
+    const muteTenorButton = document.getElementById('muteTenor');
+    const muteBassButton = document.getElementById('muteBass');
+
     const sopranoButton = document.getElementById('presetSop');
     const altoButton = document.getElementById('presetAlto');
     const tenorButton = document.getElementById('presetTenor');
     const bassButton = document.getElementById('presetBass');
+
     const fullMonoButton = document.getElementById('presetFullMono');
     const fullStereoButton = document.getElementById('presetChoirStereo');
-    const emilyStereoButton = document.getElementById('presetEmilyStereo');
+    const leaderStereoButton = document.getElementById('presetLeaderStereo');
 
-    const otherVoicesReducedVolume = 0.3;
+    const otherVoicesVolumeSlider = document.getElementById('otherVoicesVolume');
 
     const audioElements = Array.from(document.querySelectorAll('audio'));
-    const panningSliders = Array.from(document.querySelectorAll('input[type="range"]'));
+    if (audioElements.length !== 4) {
+        throw new Error(`Expected 4 audio elements, but found ${audioElements.length}`);
+    }
+
+    const panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'));
+    if (panningSliders.length !== 4) {
+        throw new Error(`Expected 4 panning sliders, but found ${panningSliders.length}`);
+    }
+
+    const trackVolumeSliders = Array.from(document.querySelectorAll('input[class="trackVolume"]'));
+    if (trackVolumeSliders.length !== 4) {
+        throw new Error(`Expected 4 track volume sliders, but found ${trackVolumeSliders.length}`);
+    }
+
+    let heroVoice = "";
+    let otherVoicesReducedVolume = parseFloat(otherVoicesVolumeSlider.value);
 
     let audioContext;
     const panners = [];
@@ -127,23 +181,97 @@
             const slider = panningSliders[index];
             if (!slider) throw new Error(`No pan slider found for audio element at index ${index}`);
 
-            const source = audioContext.createMediaElementSource(audio);
-            const panner = audioContext.createStereoPanner();
+            const trackVolumeSlider = trackVolumeSliders[index];
+            if (!trackVolumeSlider) throw new Error(`No track volume slider found for audio element at index ${index}`);
 
-            panner.pan.value = slider.value;
+            const source = audioContext.createMediaElementSource(audio);
+            if (!source) throw new Error(`Failed to create media element source for audio element at index ${index}`);
+
+            const panner = audioContext.createStereoPanner();
+            if (!panner) throw new Error(`Failed to create stereo panner for audio element at index ${index}`);
 
             slider.addEventListener('input', (event) => {
                 const value = parseFloat(event.target.value);
                 panner.pan.value = value;
             });
 
+            trackVolumeSlider.addEventListener('input', (event) => {
+                const value = parseFloat(event.target.value);
+                source.volume = value;
+            });
+
+            panner.pan.value = slider.value;
+
             source.connect(panner).connect(audioContext.destination);
 
             panners[index] = panner;
+
+            audio.duration = audio.duration; // Force the browser to load the duration
+            updateTrackProgress(); // Update the progress slider immediately after loading the audio
         });
     }
 
-    playAllButton.addEventListener('click', async () => {
+    function updateTrackVolumes(s, a, t, b) {
+        audioElements.forEach((audio, index) => {
+            const trackVolumeSlider = trackVolumeSliders[index];
+            if (!trackVolumeSlider) throw new Error(`No track volume slider found for audio element at index ${index}`);
+
+            if (index === 0) audio.volume = parseFloat(s);
+            else if (index === 1) audio.volume = parseFloat(a);
+            else if (index === 2) audio.volume = parseFloat(t);
+            else if (index === 3) audio.volume = parseFloat(b);
+
+            trackVolumeSlider.value = audio.volume;
+        });
+    }
+
+    function updateTrackProgress() {
+        if (audioElements.length === 0) return;
+
+        const currentTime = audioElements[0].currentTime;
+        const duration = audioElements[0].duration;
+
+        if (!isNaN(duration) && duration > 0) {
+            const progressPercent = (100 * currentTime) / duration;
+            trackProgressSlider.value = progressPercent;
+        }
+    }
+
+    function updatePanningValues(s, a, t, b) {
+        panningSliders[0].value = s;
+        panningSliders[1].value = a;
+        panningSliders[2].value = t;
+        panningSliders[3].value = b;
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+    }
+
+    function muteTrack(index) {
+        const audio = audioElements[index];
+        audio.muted = !audio.muted;
+        const button = [muteSopranoButton, muteAltoButton, muteTenorButton, muteBassButton][index];
+        button.textContent = audio.muted ? '🔇' : '🔊';
+        trackVolumeSliders[index].disabled = audio.muted;
+    }
+
+    muteSopranoButton.addEventListener('click', () => {
+        muteTrack(0);
+    });
+    muteAltoButton.addEventListener('click', () => {
+        muteTrack(1);
+    });
+    muteTenorButton.addEventListener('click', () => {
+        muteTrack(2);
+    });
+    muteBassButton.addEventListener('click', () => {
+        muteTrack(3);
+    });
+
+    audioElements[0].addEventListener('timeupdate', updateTrackProgress);
+
+    playButton.addEventListener('click', async () => {
         if (!audioContext || panners.length === 0) {
             try {
                 setupAudio();
@@ -164,23 +292,26 @@
                 audio.play().catch(() => { });
             });
             isPaused = false;
-            playAllButton.textContent = 'Pause All';
+            playButton.textContent = 'Pause';
         } else {
             audioElements.forEach(audio => {
                 audio.pause();
             });
             isPaused = true;
-            playAllButton.textContent = 'Play All';
+            playButton.textContent = 'Play';
         }
+
+        stopButton.hidden = false;
     });
 
-    stopAllButton.addEventListener('click', () => {
+    stopButton.addEventListener('click', () => {
         audioElements.forEach(audio => {
             audio.pause();
             audio.currentTime = 0;
         });
         isPaused = true;
-        playAllButton.textContent = 'Play All';
+        playButton.textContent = 'Play ';
+        stopButton.hidden = true;
     });
 
     panningSliders.forEach((slider, index) => {
@@ -191,123 +322,73 @@
     });
 
     sopranoButton.addEventListener('click', () => {
-        panningSliders[0].value = 0; // Soprano center
-        panningSliders[1].value = -1; // Alto left
-        panningSliders[2].value = -1; // Tenor left
-        panningSliders[3].value = -1; // Bass left
+        heroVoice = "soprano";
 
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
+        updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume);
 
-        audioElements.forEach((audio, index) => {
-            if (index === 0) {
-                audio.volume = 1.0; // Soprano full volume
-            } else {
-                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
-            }
-        });
+        updatePanningValues(0, -1, -1, -1); // Soprano center, Alto left, Tenor left, Bass left
     });
 
     altoButton.addEventListener('click', () => {
-        panningSliders[0].value = 1; // Soprano right
-        panningSliders[1].value = 0; // Alto center
-        panningSliders[2].value = -1; // Tenor left
-        panningSliders[3].value = -1; // Bass left
+        heroVoice = "alto";
 
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
+        updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume);
 
-        audioElements.forEach((audio, index) => {
-            if (index === 1) {
-                audio.volume = 1.0; // Alto full volume
-            } else {
-                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
-            }
-        });
+        updatePanningValues(1, 0, -1, -1); // Soprano right, Alto center, Tenor left, Bass left
     });
 
     tenorButton.addEventListener('click', () => {
-        panningSliders[0].value = 1; // Soprano right
-        panningSliders[1].value = 1; // Alto right
-        panningSliders[2].value = 0; // Tenor center
-        panningSliders[3].value = -1; // Bass left
+        heroVoice = "tenor";
 
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
+        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume);
 
-        audioElements.forEach((audio, index) => {
-            if (index === 2) {
-                audio.volume = 1.0; // Tenor full volume
-            } else {
-                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
-            }
-        });
+        updatePanningValues(1, 1, 0, -1); // Soprano right, Alto right, Tenor center, Bass left
     });
 
     bassButton.addEventListener('click', () => {
-        panningSliders[0].value = 1; // Soprano right
-        panningSliders[1].value = 1; // Alto right
-        panningSliders[2].value = 1; // Tenor right
-        panningSliders[3].value = 0; // Bass center
+        heroVoice = "bass";
 
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
+        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0);
 
-        audioElements.forEach((audio, index) => {
-            if (index === 3) {
-                audio.volume = 1.0; // Bass full volume
-            } else {
-                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
-            }
-        });
+        updatePanningValues(1, 1, 1, 0); // Soprano right, Alto right, Tenor right, Bass center
     });
 
     fullMonoButton.addEventListener('click', () => {
-        panningSliders[0].value = 0; // Soprano center
-        panningSliders[1].value = 0; // Alto center
-        panningSliders[2].value = 0; // Tenor center
-        panningSliders[3].value = 0; // Bass center
-
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
-
-        audioElements.forEach((audio, index) => {
-            audio.volume = 1.0; // All voices full volume
-        });
+        heroVoice = "";
+        updateTrackVolumes(1.0, 1.0, 1.0, 1.0); // All voices full volume
+        updatePanningValues(0, 0, 0, 0); // All voices center
     });
 
     fullStereoButton.addEventListener('click', () => {
-        panningSliders[0].value = 1; // Soprano right
-        panningSliders[1].value = 0.35; // Alto mid right
-        panningSliders[2].value = -0.35; // Tenor mid left
-        panningSliders[3].value = -1; // Bass left
-
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
-
-        audioElements.forEach((audio, index) => {
-            audio.volume = 1.0; // All voices full volume
-        });
+        heroVoice = "";
+        updateTrackVolumes(1.0, 1.0, 1.0, 1.0); // All voices full volume
+        updatePanningValues(1, 0.35, -0.35, -1); // Soprano right, Alto mid right, Tenor mid left, Bass left
     });
 
-    emilyStereoButton.addEventListener('click', () => {
-        panningSliders[0].value = -1; // Soprano left
-        panningSliders[1].value = -0.35; // Alto mid left
-        panningSliders[2].value = 0.35; // Tenor mid right
-        panningSliders[3].value = 1; // Bass right
+    leaderStereoButton.addEventListener('click', () => {
+        heroVoice = "";
+        updateTrackVolumes(1.0, 1.0, 1.0, 1.0); // All voices full volume
+        updatePanningValues(-1, -0.35, 0.35, 1); // Soprano left, Alto mid left, Tenor mid right, Bass right
+    });
 
-        panners.forEach((panner, index) => {
-            panner.pan.value = parseFloat(panningSliders[index].value);
-        });
+    otherVoicesVolumeSlider.addEventListener('input', () => {
+        let heroVoiceVolume = 1.0; // Reset hero voice volume to full
+        otherVoicesReducedVolume = parseFloat(otherVoicesVolumeSlider.value);
 
         audioElements.forEach((audio, index) => {
-            audio.volume = 1.0; // All voices full volume
+            if (heroVoice === "soprano" && index !== 0) {
+                audio.volume = otherVoicesReducedVolume;
+                trackVolumeSliders[index].value = audio.volume;
+            } else if (heroVoice === "alto" && index !== 1) {
+                audio.volume = otherVoicesReducedVolume;
+                trackVolumeSliders[index].value = audio.volume;
+            } else if (heroVoice === "tenor" && index !== 2) {
+                audio.volume = otherVoicesReducedVolume;
+                trackVolumeSliders[index].value = audio.volume;
+            } else if (heroVoice === "bass" && index !== 3) {
+                audio.volume = otherVoicesReducedVolume;
+                trackVolumeSliders[index].value = audio.volume;
+            }
         });
     });
 </script>
