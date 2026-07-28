@@ -25,7 +25,7 @@
         }
 
         button {
-            font-size: 16px;
+            font-size: 2rem;
             margin: 5px;
             padding: 5px;
             background-color: rgb(251, 184, 41);
@@ -49,8 +49,8 @@
         <p><b>Please try using earphones for the best Left-Right panning experience!</b></p>
     </div>
     <div>
-        <button id="play">Play</button>
-        <button id="stop" hidden="true">Stop</button>
+        <button id="play">▶️</button>
+        <button id="stop" hidden="true">⏹️</button>
     </div>
     <div>
         <label id="progressLabel">
@@ -292,13 +292,13 @@
                 audio.play().catch(() => { });
             });
             isPaused = false;
-            playButton.textContent = 'Pause';
+            playButton.textContent = '⏸️';
         } else {
             audioElements.forEach(audio => {
                 audio.pause();
             });
             isPaused = true;
-            playButton.textContent = 'Play';
+            playButton.textContent = '▶️';
         }
 
         stopButton.hidden = false;
@@ -310,7 +310,7 @@
             audio.currentTime = 0;
         });
         isPaused = true;
-        playButton.textContent = 'Play ';
+        playButton.textContent = '▶️';
         stopButton.hidden = true;
     });
 
