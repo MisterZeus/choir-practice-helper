@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Choir Practice Helper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: black;
+        }
+
+        p {
+            color: black;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px;
+            background-color: rgb(251, 184, 41);
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45b300;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h1>Choir Practice Helper</h1>
+        <p>This is a simple voice mixer for practicing with different choir parts.</p>
+        <p>Use the buttons below to play/pause all parts, stop all parts, or apply different panning presets.</p>
+        <p><b>Please try using earphones for the best Left-Right panning experience!</b></p>
+    </div>
+    <div>
+        <button id="playAll">Play All</button>
+        <button id="stopAll">Stop All</button>
+    </div>
+    <div>
+        <label>S</label>
+        <audio controls src="Accentuate/sop-accentuate.m4a" preload="auto"></audio>
+        <label>L</label>
+        <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
+        <label>R</label>
+    </div>
+    <div>
+        <label>A</label>
+        <audio controls src="Accentuate/alto-accentuate.m4a" preload="auto"></audio>
+        <label>L</label>
+        <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
+        <label>R</label>
+    </div>
+    <div>
+        <label>T</label>
+        <audio controls src="Accentuate/tenor-accentuate.m4a" preload="auto"></audio>
+        <label>L</label>
+        <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
+        <label>R</label>
+    </div>
+    <div>
+        <label>B</label>
+        <audio controls src="Accentuate/bass-accentuate.m4a" preload="auto"></audio>
+        <label>L</label>
+        <input type="range" class="pan" min="-1" max="1" value="-1" step="0.1">
+        <label>R</label>
+    </div>
+    <div>
+        <button id="presetSop">Soprano</button>
+        <button id="presetAlto">Alto</button>
+        <button id="presetTenor">Tenor</button>
+        <button id="presetBass">Bass</button>
+    </div>
+    <div>
+        <button id="presetChoirStereo">Choir Stereo</button>
+        <button id="presetEmilyStereo">Emily Stereo</button>
+    </div>
+    <div>
+        <button id="presetFullMono">All Mono</button>
+    </div>
+</body>
+<script>
+    const playAllButton = document.getElementById('playAll');
+    const stopAllButton = document.getElementById('stopAll');
+    const sopranoButton = document.getElementById('presetSop');
+    const altoButton = document.getElementById('presetAlto');
+    const tenorButton = document.getElementById('presetTenor');
+    const bassButton = document.getElementById('presetBass');
+    const fullMonoButton = document.getElementById('presetFullMono');
+    const fullStereoButton = document.getElementById('presetChoirStereo');
+    const emilyStereoButton = document.getElementById('presetEmilyStereo');
+
+    const otherVoicesReducedVolume = 0.3;
+
+    const audioElements = Array.from(document.querySelectorAll('audio'));
+    const panningSliders = Array.from(document.querySelectorAll('input[type="range"]'));
+
+    let audioContext;
+    const panners = [];
+    let isPaused = true;
+
+    function setupAudio() {
+        if (!window.AudioContext && !window.webkitAudioContext) {
+            throw new Error('Web Audio API is not supported in this browser.');
+        }
+
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        audioElements.forEach((audio, index) => {
+            const slider = panningSliders[index];
+            if (!slider) throw new Error(`No pan slider found for audio element at index ${index}`);
+
+            const source = audioContext.createMediaElementSource(audio);
+            const panner = audioContext.createStereoPanner();
+
+            panner.pan.value = slider.value;
+
+            slider.addEventListener('input', (event) => {
+                const value = parseFloat(event.target.value);
+                panner.pan.value = value;
+            });
+
+            source.connect(panner).connect(audioContext.destination);
+
+            panners[index] = panner;
+        });
+    }
+
+    playAllButton.addEventListener('click', async () => {
+        if (!audioContext || panners.length === 0) {
+            try {
+                setupAudio();
+                window.__audioContext = audioContext;
+                window.__panners = panners;
+            } catch (error) {
+                window.__setupError = error;
+                console.error('Audio setup failed', error);
+            }
+        }
+
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        if (isPaused) {
+            audioElements.forEach(audio => {
+                audio.play().catch(() => { });
+            });
+            isPaused = false;
+            playAllButton.textContent = 'Pause All';
+        } else {
+            audioElements.forEach(audio => {
+                audio.pause();
+            });
+            isPaused = true;
+            playAllButton.textContent = 'Play All';
+        }
+    });
+
+    stopAllButton.addEventListener('click', () => {
+        audioElements.forEach(audio => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+        isPaused = true;
+        playAllButton.textContent = 'Play All';
+    });
+
+    panningSliders.forEach((slider, index) => {
+        slider.addEventListener('input', (event) => {
+            const value = parseFloat(event.target.value);
+            panners[index].pan.value = value;
+        });
+    });
+
+    sopranoButton.addEventListener('click', () => {
+        panningSliders[0].value = 0; // Soprano center
+        panningSliders[1].value = -1; // Alto left
+        panningSliders[2].value = -1; // Tenor left
+        panningSliders[3].value = -1; // Bass left
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            if (index === 0) {
+                audio.volume = 1.0; // Soprano full volume
+            } else {
+                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
+            }
+        });
+    });
+
+    altoButton.addEventListener('click', () => {
+        panningSliders[0].value = 1; // Soprano right
+        panningSliders[1].value = 0; // Alto center
+        panningSliders[2].value = -1; // Tenor left
+        panningSliders[3].value = -1; // Bass left
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            if (index === 1) {
+                audio.volume = 1.0; // Alto full volume
+            } else {
+                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
+            }
+        });
+    });
+
+    tenorButton.addEventListener('click', () => {
+        panningSliders[0].value = 1; // Soprano right
+        panningSliders[1].value = 1; // Alto right
+        panningSliders[2].value = 0; // Tenor center
+        panningSliders[3].value = -1; // Bass left
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            if (index === 2) {
+                audio.volume = 1.0; // Tenor full volume
+            } else {
+                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
+            }
+        });
+    });
+
+    bassButton.addEventListener('click', () => {
+        panningSliders[0].value = 1; // Soprano right
+        panningSliders[1].value = 1; // Alto right
+        panningSliders[2].value = 1; // Tenor right
+        panningSliders[3].value = 0; // Bass center
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            if (index === 3) {
+                audio.volume = 1.0; // Bass full volume
+            } else {
+                audio.volume = otherVoicesReducedVolume; // Other voices reduced volume
+            }
+        });
+    });
+
+    fullMonoButton.addEventListener('click', () => {
+        panningSliders[0].value = 0; // Soprano center
+        panningSliders[1].value = 0; // Alto center
+        panningSliders[2].value = 0; // Tenor center
+        panningSliders[3].value = 0; // Bass center
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            audio.volume = 1.0; // All voices full volume
+        });
+    });
+
+    fullStereoButton.addEventListener('click', () => {
+        panningSliders[0].value = 1; // Soprano right
+        panningSliders[1].value = 0.35; // Alto mid right
+        panningSliders[2].value = -0.35; // Tenor mid left
+        panningSliders[3].value = -1; // Bass left
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            audio.volume = 1.0; // All voices full volume
+        });
+    });
+
+    emilyStereoButton.addEventListener('click', () => {
+        panningSliders[0].value = -1; // Soprano left
+        panningSliders[1].value = -0.35; // Alto mid left
+        panningSliders[2].value = 0.35; // Tenor mid right
+        panningSliders[3].value = 1; // Bass right
+
+        panners.forEach((panner, index) => {
+            panner.pan.value = parseFloat(panningSliders[index].value);
+        });
+
+        audioElements.forEach((audio, index) => {
+            audio.volume = 1.0; // All voices full volume
+        });
+    });
+</script>
+
+</html>
