@@ -178,6 +178,7 @@
         let sourceNodes = [];
         let isPlaying = false;
         let isPaused = true;
+        let isSeeking = false;
         let playhead = 0;
         let playbackStartedAt = 0;
         let progressTimer = null;
@@ -358,6 +359,12 @@
             return playhead + (audioContext.currentTime - playbackStartedAt);
         }
 
+        function formatTime(time) {
+            const minutes = Math.floor(time / 60);
+            const seconds = Math.floor(time % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
         function updateTrackProgress() {
             const duration = getTrackDuration();
             if (!duration) {
@@ -377,11 +384,6 @@
 
             trackProgressSlider.value = (100 * currentTime) / duration;
 
-            const formatTime = (time) => {
-                const minutes = Math.floor(time / 60);
-                const seconds = Math.floor(time % 60);
-                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            };
             progressLabel.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
         }
 
@@ -440,9 +442,11 @@
             }
 
             const duration = getTrackDuration();
+
             if (!isNaN(duration) && duration > 0) {
                 playhead = (percent / 100) * duration;
-                if (isPlaying) {
+
+                if (isPlaying || (isSeeking && isPaused)) {
                     startPlayback();
                 } else {
                     updateTrackProgress();
@@ -460,6 +464,13 @@
                 gainNodes[index].gain.value = mutedStates[index] ? 0 : trackVolumeValues[index];
             }
         }
+
+        trackProgressSlider.addEventListener('input', (event) => {
+            isSeeking = true;
+            pausePlayback();
+            progressLabel.textContent = `${formatTime((event.target.value / 100) * getTrackDuration())} / ${formatTime(getTrackDuration())}`;
+            seekTrack(event.target.value);
+        });
 
         panningSliders.forEach((slider, index) => {
             slider.addEventListener('input', (event) => {
