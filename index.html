@@ -50,11 +50,11 @@
     </div>
     <div>
         <button type="button" id="play">▶️</button>
-        <button type="button" id="stop" hidden="true">⏹️</button>
+        <button type="button" id="stop" hidden>⏹️</button>
     </div>
     <div>
         <label id="progressLabel">
-            <input id="trackProgress" type="range" min="0" max="100" value="0" width="100%">
+            <input id="trackProgress" type="range" min="0" max="100" value="0">
         </label>
     </div>
     <div>
@@ -125,7 +125,6 @@
         <button id="presetLeaderStereo">S A T B</button>
         <button id="presetFullMono">⚖️</button>
     </div>
-</body>
 <script>
     const playButton = document.getElementById('play');
     const stopButton = document.getElementById('stop');
@@ -394,5 +393,5 @@
         });
     });
 </script>
-
+</body>
 </html>
