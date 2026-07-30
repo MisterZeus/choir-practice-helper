@@ -47,6 +47,7 @@
         <p>A simple voice mixer to practice different choir parts.</p>
         <p>Use the buttons to play/pause/stop all parts, or change volume and pan (left/right) presets.</p>
         <p><b>Try using earphones for the best experience!</b></p>
+        <p id="audioStatus" aria-live="polite" style="color: #666;"></p>
     </div>
     <div>
         <button type="button" id="playPause" onclick="playPause()">▶️</button>
@@ -132,6 +133,7 @@
     <script>
         const playPauseButton = document.getElementById('playPause');
         const stopButton = document.getElementById('stop');
+        const audioStatus = document.getElementById('audioStatus');
 
         const trackProgressSlider = document.getElementById('trackProgress');
 
@@ -182,6 +184,12 @@
         let trackVolumeValues = [1, 1, 1, 1];
         let mutedStates = [false, false, false, false];
 
+        function setStatus(message) {
+            if (audioStatus) {
+                audioStatus.textContent = message;
+            }
+        }
+
         async function playPause() {
             if (!audioContext) {
                 try {
@@ -191,6 +199,7 @@
                 } catch (error) {
                     window.__setupError = error;
                     console.error('Audio setup failed', error);
+                    setStatus('Audio setup failed. On iOS Safari, these files may need to be re-encoded to MP3 or AAC for reliable playback.');
                     return;
                 }
             }
@@ -253,11 +262,25 @@
 
         async function loadAudioBuffers() {
             const urls = audioElements.map(audio => audio.getAttribute('src'));
-            trackBuffers = await Promise.all(urls.map(async (url) => {
-                const response = await fetch(url);
-                const arrayBuffer = await response.arrayBuffer();
-                return audioContext.decodeAudioData(arrayBuffer);
-            }));
+            const decodedBuffers = [];
+
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`Could not fetch ${url}: ${response.status}`);
+                    }
+                    const arrayBuffer = await response.arrayBuffer();
+                    const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    decodedBuffers.push(decodedBuffer);
+                } catch (error) {
+                    console.error('Failed to decode audio', error);
+                    setStatus('Playback is blocked because the current audio files are not being decoded reliably on iOS Safari. Re-encode them as MP3 or AAC and update the audio sources.');
+                    throw error;
+                }
+            }
+
+            trackBuffers = decodedBuffers;
         }
 
         function startPlayback() {
