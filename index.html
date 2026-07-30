@@ -190,14 +190,21 @@
             }
 
             if (isPaused) {
+                const currentTime = audioElements[0].currentTime;
+
                 audioElements.forEach(audio => {
+                    audio.currentTime = currentTime;
                     audio.play().catch(() => { });
                 });
+
                 isPaused = false;
                 playPauseButton.textContent = '⏸️';
             } else {
+                const currentTime = audioElements[0].currentTime;
+
                 audioElements.forEach(audio => {
                     audio.pause();
+                    audio.currentTime = currentTime;
                 });
                 isPaused = true;
                 playPauseButton.textContent = '▶️';
@@ -290,6 +297,7 @@
             if (!isNaN(duration) && duration > 0) {
                 const progressPercent = (100 * currentTime) / duration;
                 trackProgressSlider.value = progressPercent;
+
                 const formatTime = (time) => {
                     const minutes = Math.floor(time / 60);
                     const seconds = Math.floor(time % 60);
@@ -344,7 +352,7 @@
             trackVolumeSliders[index].disabled = audio.muted;
         }
 
-        audioElements[0].addEventListener('timeupdate', updateTrackProgress);
+        audioElements[0].addEventListener('timeupdate', updateTrackProgress());
 
         panningSliders.forEach((slider, index) => {
             slider.addEventListener('input', (event) => {
