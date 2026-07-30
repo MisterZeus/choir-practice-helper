@@ -62,7 +62,7 @@
             <audio src="Accentuate/sop-accentuate.opus" preload="auto"></audio>
             <button id="muteSoprano" onclick="muteTrack(0)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                onchange="changeVolume(this.value, 'soprano')">
+                oninput="changeVolume(this.value, 'soprano')">
             <button id="presetSop">🦸</button>
         </label>
     </div>
@@ -71,7 +71,7 @@
             <audio src="Accentuate/alto-accentuate.opus" preload="auto"></audio>
             <button id="muteAlto" onclick="muteTrack(1)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                onchange="changeVolume(this.value, 'alto')">
+                oninput="changeVolume(this.value, 'alto')">
             <button id="presetAlto">🦸</button>
         </label>
     </div>
@@ -80,7 +80,7 @@
             <audio src="Accentuate/tenor-accentuate.opus" preload="auto"></audio>
             <button id="muteTenor" onclick="muteTrack(2)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                onchange="changeVolume(this.value, 'tenor')">
+                oninput="changeVolume(this.value, 'tenor')">
             <button id="presetTenor">🦸</button>
         </label>
     </div>
@@ -89,15 +89,15 @@
             <audio src="Accentuate/bass-accentuate.opus" preload="auto"></audio>
             <button id="muteBass" onclick="muteTrack(3)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                onchange="changeVolume(this.value, 'bass')">
+                oninput="changeVolume(this.value, 'bass')">
             <button id="presetBass">🦸</button>
         </label>
     </div>
     <div>
         <p>
             <label>Backing Volume:
-                <input id="otherVoicesVolume" type="range" class="volume" min="0" max="1" value="0.25" step="0.05"
-                    onchange="changeVolume(this.value, 'other')">
+                <input id="otherVoicesVolume" type="range" class="volume" min="0" max="1" value="0.20" step="0.05"
+                    oninput="changeVolume(this.value, 'other')">
             </label>
         <p>
     </div>
