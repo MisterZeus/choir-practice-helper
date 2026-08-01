@@ -95,12 +95,11 @@ function setStatus(message) {
     }
 }
 
-async function playPause() {
+function playPause() {
     try {
-        stopButton.textContent = '.'
         if (!audioContext) {
             try {
-                await setupAudio()
+                setupAudio()
                 window.__audioContext = audioContext
                 window.__panners = panners
             } catch (error) {
@@ -111,7 +110,7 @@ async function playPause() {
         }
 
         if (audioContext.state === 'suspended') {
-            await audioContext.resume()
+            audioContext.resume()
         }
 
         if (isPaused) {
@@ -162,8 +161,14 @@ async function setupAudio() {
             throw new Error('Web Audio API is not supported in this browser.')
         }
 
+        stopButton.textContent = '.'
+
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        }
+
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume()
         }
 
         if (trackBuffers.length === 0) {
@@ -178,8 +183,7 @@ async function setupAudio() {
                 const panner = audioContext.createStereoPanner()
                 panner.pan.value = parseFloat(panningSliders[index].value)
 
-                gainNode.connect(panner)
-                panner.connect(audioContext.destination)
+                gainNode.connect(panner).connect(audioContext.destination)
 
                 gainNodes[index] = gainNode
                 panners[index] = panner
@@ -203,14 +207,17 @@ async function loadAudioBuffers() {
                 if (!response.ok) {
                     throw new Error(`Could not fetch ${url}: ${response.status}`)
                 }
+
                 const arrayBuffer = await response.arrayBuffer()
+
                 const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer)
                 decodedBuffers.push(decodedBuffer)
+
+                stopButton.textContent += '.'
             } catch (error) {
                 console.error('Failed to decode audio', error)
                 throw error
             }
-            stopButton.textContent += '.'
         }
 
         trackBuffers = decodedBuffers
