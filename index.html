@@ -25,18 +25,23 @@
         }
 
         button {
-            font-size: 2rem;
-            margin: 5px;
-            padding: 5px;
+            font-size: 3rem;
+            margin: 6px;
+            padding: 4px;
             background-color: rgb(251, 184, 41);
             color: black;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
         }
 
         button:hover {
             background-color: #45b300;
+        }
+
+        input[type="range"] {
+            padding-top: 15px;
+            padding-bottom: 15px;
         }
     </style>
 </head>
@@ -47,11 +52,11 @@
         <p>A simple voice mixer to practice different choir parts.</p>
         <p>Use the buttons to play/pause/stop all parts, or change volume and pan (left/right) presets.</p>
         <p><b>Try using earphones for the best experience!</b></p>
-        <p id="audioStatus" aria-live="polite" style="color: #666;"></p>
     </div>
     <div>
         <button type="button" id="playPause" onclick="playPause()">▶️</button>
         <button type="button" id="stop" onclick="stop()" hidden>⏹️</button>
+        <label id="safariWarning"></label>
     </div>
     <div>
         <input id="trackProgress" type="range" min="0" max="100" value="0" onchange="seekTrack(this.value)">
@@ -122,14 +127,14 @@
         </label>
     </div>
     <div>
-        <button id="presetChoirStereo">B T A S</button>
-        <button id="presetLeaderStereo">S A T B</button>
+        <button id="presetChoirStereo">BTAS</button>
+        <button id="presetLeaderStereo">SATB</button>
         <button id="presetFullMono">⚖️</button>
     </div>
     <script>
         const playPauseButton = document.getElementById('playPause');
         const stopButton = document.getElementById('stop');
-        const audioStatus = document.getElementById('audioStatus');
+        const safariWarning = document.getElementById('safariWarning');
 
         const trackProgressSlider = document.getElementById('trackProgress');
 
@@ -154,10 +159,10 @@
 
         let songFolder = "Accentuate";
         let audioFileExtension = ".opus";
-        
+
         if (isSafari) {
-                audioFileExtension = ".aac";
-            }
+            audioFileExtension = ".aac";
+        }
 
         let songFiles = [
             "./" + songFolder + "/sop-accentuate" + audioFileExtension,
@@ -197,12 +202,6 @@
         let trackVolumeValues = [1, 1, 1, 1];
         let mutedStates = [false, false, false, false];
 
-        function setStatus(message) {
-            if (audioStatus) {
-                audioStatus.textContent = message;
-            }
-        }
-
         async function playPause() {
             if (!audioContext) {
                 try {
@@ -227,6 +226,10 @@
                 pausePlayback();
             }
 
+            if (isSafari && isPlaying) {
+                safariWarning.textContent = "⚠️ Safari detected. If you cannot hear the audio, please turn off your Silent mode and turn your volume up.";
+            };
+
             stopButton.hidden = false;
         }
 
@@ -239,6 +242,10 @@
             playPauseButton.textContent = '▶️';
             stopButton.hidden = true;
             updateTrackProgress();
+
+            if (isSafari && !isPlaying) {
+                safariWarning.textContent = "";
+            };
         }
 
         async function setupAudio() {
@@ -523,16 +530,18 @@
             updatePanningValues(0, 0, 0, 0);
         });
 
+        let middleVoicesPan = 0.35;
+
         fullStereoButton.addEventListener('click', () => {
             heroVoice = "";
             updateTrackVolumes(1.0, 1.0, 1.0, 1.0);
-            updatePanningValues(1, 0.35, -0.35, -1);
+            updatePanningValues(1, middleVoicesPan, -middleVoicesPan, -1);
         });
 
         leaderStereoButton.addEventListener('click', () => {
             heroVoice = "";
             updateTrackVolumes(1.0, 1.0, 1.0, 1.0);
-            updatePanningValues(-1, -0.35, 0.35, 1);
+            updatePanningValues(-1, -middleVoicesPan, middleVoicesPan, 1);
         });
 
         otherVoicesVolumeSlider.addEventListener('input', () => {
