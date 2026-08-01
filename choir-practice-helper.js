@@ -1,43 +1,43 @@
-const playPauseButton = document.getElementById('playPause');
-const stopButton = document.getElementById('stop');
-const safariWarning = document.getElementById('safariWarning');
-const audioStatus = document.getElementById('audioStatus');
+const playPauseButton = document.getElementById('playPause')
+const stopButton = document.getElementById('stop')
+const safariWarning = document.getElementById('safariWarning')
+const audioStatus = document.getElementById('audioStatus')
 
-const trackProgressSlider = document.getElementById('trackProgress');
+const trackProgressSlider = document.getElementById('trackProgress')
 
-const muteSopranoButton = document.getElementById('muteSoprano');
-const muteAltoButton = document.getElementById('muteAlto');
-const muteTenorButton = document.getElementById('muteTenor');
-const muteBassButton = document.getElementById('muteBass');
+const muteSopranoButton = document.getElementById('muteSoprano')
+const muteAltoButton = document.getElementById('muteAlto')
+const muteTenorButton = document.getElementById('muteTenor')
+const muteBassButton = document.getElementById('muteBass')
 
-const sopranoButton = document.getElementById('presetSop');
-const altoButton = document.getElementById('presetAlto');
-const tenorButton = document.getElementById('presetTenor');
-const bassButton = document.getElementById('presetBass');
+const sopranoButton = document.getElementById('presetSop')
+const altoButton = document.getElementById('presetAlto')
+const tenorButton = document.getElementById('presetTenor')
+const bassButton = document.getElementById('presetBass')
 
-const fullMonoButton = document.getElementById('presetFullMono');
-const fullStereoButton = document.getElementById('presetChoirStereo');
-const leaderStereoButton = document.getElementById('presetLeaderStereo');
+const fullMonoButton = document.getElementById('presetFullMono')
+const fullStereoButton = document.getElementById('presetChoirStereo')
+const leaderStereoButton = document.getElementById('presetLeaderStereo')
 
-const backingVolumeSlider = document.getElementById('backingVolume');
+const backingVolumeSlider = document.getElementById('backingVolume')
 
-let totalExpectedFiles = 4;
+let totalExpectedFiles = 4
 
-const panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'));
+const panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'))
 if (panningSliders.length !== totalExpectedFiles) {
-    throw new Error(`Expected ${totalExpectedFiles} panning sliders, but found ${panningSliders.length}`);
+    throw new Error(`Expected ${totalExpectedFiles} panning sliders, but found ${panningSliders.length}`)
 }
 
-const trackVolumeSliders = Array.from(document.querySelectorAll('input[class="trackVolume"]'));
+const trackVolumeSliders = Array.from(document.querySelectorAll('input[class="trackVolume"]'))
 if (trackVolumeSliders.length !== totalExpectedFiles) {
-    throw new Error(`Expected ${totalExpectedFiles} track volume sliders, but found ${trackVolumeSliders.length}`);
+    throw new Error(`Expected ${totalExpectedFiles} track volume sliders, but found ${trackVolumeSliders.length}`)
 }
 
 // Safari 3.0+ "[object HTMLElementConstructor]"
-const isSafari = /constructor/i.test(window.HTMLElement)
+const is_iOS_Safari = /constructor/i.test(window.HTMLElement)
     || (
         function (p) {
-            return p.toString() === "[object SafariRemoteNotification]";
+            return p.toString() === "[object SafariRemoteNotification]"
         })(!window['safari']
             || (typeof safari !== 'undefined' && window['safari'].pushNotification)
         )
@@ -51,13 +51,14 @@ const isSafari = /constructor/i.test(window.HTMLElement)
     ].includes(navigator.platform)
     // iPad on iOS 13 detection
     || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
-    ;
+    || /iPad|iPhone|iPod/.test(navigator.userAgent)
 
-let songFolder = "Accentuate";
 
-let audioFileExtension = ".opus";
-if (isSafari) {
-    audioFileExtension = ".aac";
+let songFolder = "Accentuate"
+
+let audioFileExtension = ".opus"
+if (is_iOS_Safari) {
+    audioFileExtension = ".aac"
 }
 
 let songFiles = [
@@ -65,212 +66,212 @@ let songFiles = [
     "./" + songFolder + "/alto-accentuate" + audioFileExtension,
     "./" + songFolder + "/tenor-accentuate" + audioFileExtension,
     "./" + songFolder + "/bass-accentuate" + audioFileExtension
-];
+]
 
 if (songFiles.length !== totalExpectedFiles) {
-    throw new Error(`Expected ${totalExpectedFiles} audio files, but found ${songFiles.length}`);
+    throw new Error(`Expected ${totalExpectedFiles} audio files, but found ${songFiles.length}`)
 }
 
-let heroVoice = "";
-let otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value);
+let heroVoice = ""
+let otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value)
 
-let audioContext;
-let trackBuffers = [];
-let gainNodes = [];
-let panners = [];
-let sourceNodes = [];
-let isPlaying = false;
-let isPaused = true;
-let isSeeking = false;
-let playhead = 0;
-let playbackStartedAt = 0;
-let progressTimer = null;
-let trackVolumeValues = new Array(totalExpectedFiles).fill(1);
-let mutedStates = new Array(totalExpectedFiles).fill(false);
+let audioContext
+let trackBuffers = []
+let gainNodes = []
+let panners = []
+let sourceNodes = []
+let isPlaying = false
+let isPaused = true
+let isSeeking = false
+let playhead = 0
+let playbackStartedAt = 0
+let progressTimer = null
+let trackVolumeValues = new Array(totalExpectedFiles).fill(1)
+let mutedStates = new Array(totalExpectedFiles).fill(false)
 
 function setStatus(message) {
     if (audioStatus) {
-        audioStatus.textContent += message;
+        audioStatus.textContent += message
     }
 }
 
 async function playPause() {
     try {
-        stopButton.textContent = '.';
+        stopButton.textContent = '.'
         if (!audioContext) {
             try {
-                await setupAudio();
-                window.__audioContext = audioContext;
-                window.__panners = panners;
+                await setupAudio()
+                window.__audioContext = audioContext
+                window.__panners = panners
             } catch (error) {
-                window.__setupError = error;
-                console.error('Audio setup failed', error);
-                return;
+                window.__setupError = error
+                console.error('Audio setup failed', error)
+                return
             }
         }
 
         if (audioContext.state === 'suspended') {
-            await audioContext.resume();
+            await audioContext.resume()
         }
 
         if (isPaused) {
-            startPlayback();
+            startPlayback()
         } else {
-            pausePlayback();
+            pausePlayback()
         }
 
-        if (isSafari && isPlaying) {
+        if (is_iOS_Safari && isPlaying) {
             safariWarning.textContent = "⚠️ Safari detected." +
-                " If you cannot hear the audio," +
-                " please turn off your Silent mode and turn your volume up.";
+                "\nIf you cannot hear the audio," +
+                "\nplease turn off your Silent mode and turn your volume up."
         };
 
-        stopButton.disabled = false;
-        stopButton.textContent = '⏹️';
+        stopButton.disabled = false
+        stopButton.textContent = '⏹️'
     } catch (error) {
-        console.error('Error during audio setup', error);
-        setStatus('Error during audio setup. On iOS Safari, these files may need to be re-encoded to AAC for reliable playback.');
-        return;
+        console.error('Error during audio setup', error)
+        setStatus('Error during audio setup.'
+            + '\nOn iOS Safari, these files may need to be re-encoded to AAC for reliable playback.')
+        return
     }
 }
 
 function stop() {
     try {
-        stopSourceNodes();
-        playhead = 0;
-        isPlaying = false;
-        isPaused = true;
-        clearInterval(progressTimer);
-        playPauseButton.textContent = '▶️';
-        stopButton.disabled = true;
-        stopButton.textContent = '⬅️';
-        updateTrackProgress();
+        stopSourceNodes()
+        playhead = 0
+        isPlaying = false
+        isPaused = true
+        clearInterval(progressTimer)
+        playPauseButton.textContent = '▶️'
+        stopButton.disabled = true
+        stopButton.textContent = '⬅️'
+        updateTrackProgress()
 
-        if (isSafari && !isPlaying) {
-            safariWarning.textContent = "";
+        if (is_iOS_Safari && !isPlaying) {
+            safariWarning.textContent = ""
         };
     } catch (error) {
-        console.error('Error during stop', error);
+        console.error('Error during stop', error)
     }
 }
 
 async function setupAudio() {
     try {
         if (!window.AudioContext && !window.webkitAudioContext) {
-            throw new Error('Web Audio API is not supported in this browser.');
+            throw new Error('Web Audio API is not supported in this browser.')
         }
 
         if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext = new (window.AudioContext || window.webkitAudioContext)()
         }
 
         if (trackBuffers.length === 0) {
-            await loadAudioBuffers();
+            await loadAudioBuffers()
         }
 
         if (gainNodes.length === 0) {
             for (let index = 0; index < totalExpectedFiles; index += 1) {
-                const gainNode = audioContext.createGain();
-                gainNode.gain.value = trackVolumeValues[index];
+                const gainNode = audioContext.createGain()
+                gainNode.gain.value = trackVolumeValues[index]
 
-                const panner = audioContext.createStereoPanner();
-                panner.pan.value = parseFloat(panningSliders[index].value);
+                const panner = audioContext.createStereoPanner()
+                panner.pan.value = parseFloat(panningSliders[index].value)
 
-                gainNode.connect(panner);
-                panner.connect(audioContext.destination);
+                gainNode.connect(panner)
+                panner.connect(audioContext.destination)
 
-                gainNodes[index] = gainNode;
-                panners[index] = panner;
+                gainNodes[index] = gainNode
+                panners[index] = panner
             }
         }
 
-        updateTrackProgress();
+        updateTrackProgress()
     } catch (error) {
-        console.error('Error during setupAudio', error);
+        console.error('Error during setupAudio', error)
     }
 }
 
 async function loadAudioBuffers() {
     try {
-        const urls = songFiles;
-        const decodedBuffers = [];
+        const urls = songFiles
+        const decodedBuffers = []
 
         for (const url of urls) {
             try {
-                const response = await fetch(url);
+                const response = await fetch(url)
                 if (!response.ok) {
-                    throw new Error(`Could not fetch ${url}: ${response.status}`);
+                    throw new Error(`Could not fetch ${url}: ${response.status}`)
                 }
-                const arrayBuffer = await response.arrayBuffer();
-                const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                decodedBuffers.push(decodedBuffer);
+                const arrayBuffer = await response.arrayBuffer()
+                const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer)
+                decodedBuffers.push(decodedBuffer)
             } catch (error) {
-                console.error('Failed to decode audio', error);
-                setStatus('Playback is blocked because the current audio files are not being decoded reliably on iOS Safari. Re-encode them as AAC and update the audio sources.');
-                throw error;
+                console.error('Failed to decode audio', error)
+                throw error
             }
-            stopButton.textContent += '.';
+            stopButton.textContent += '.'
         }
 
-        trackBuffers = decodedBuffers;
+        trackBuffers = decodedBuffers
     } catch (error) {
-        console.error('Error during loadAudioBuffers', error);
+        console.error('Error during loadAudioBuffers', error)
     }
 }
 
 function startPlayback() {
     try {
         if (trackBuffers.length === 0) {
-            return;
+            return
         }
 
         if (audioContext.state === 'suspended') {
-            return;
+            return
         }
 
-        const duration = getTrackDuration();
+        const duration = getTrackDuration()
         if (duration > 0 && playhead >= duration) {
-            playhead = 0;
+            playhead = 0
         }
 
-        stopSourceNodes();
-        playbackStartedAt = audioContext.currentTime;
-        const when = playbackStartedAt + 0.05;
-        sourceNodes = [];
+        stopSourceNodes()
+        playbackStartedAt = audioContext.currentTime
+        const when = playbackStartedAt + 0.05
+        sourceNodes = []
 
         trackBuffers.forEach((buffer, index) => {
-            const source = audioContext.createBufferSource();
-            source.buffer = buffer;
-            source.connect(gainNodes[index]);
-            source.start(when, playhead);
-            sourceNodes.push(source);
-        });
+            const source = audioContext.createBufferSource()
+            source.buffer = buffer
+            source.connect(gainNodes[index])
+            source.start(when, playhead)
+            sourceNodes.push(source)
+        })
 
-        isPlaying = true;
-        isPaused = false;
-        playPauseButton.textContent = '⏸️';
-        stopButton.disabled = false;
-        clearInterval(progressTimer);
-        progressTimer = setInterval(updateTrackProgress, 250);
+        isPlaying = true
+        isPaused = false
+        playPauseButton.textContent = '⏸️'
+        stopButton.disabled = false
+        clearInterval(progressTimer)
+        progressTimer = setInterval(updateTrackProgress, 250)
     } catch (error) {
-        console.error('Error during startPlayback', error);
+        console.error('Error during startPlayback', error)
     }
 }
 
 function pausePlayback() {
     try {
         if (!isPlaying) {
-            return;
+            return
         }
 
-        playhead = getCurrentPlayhead();
-        stopSourceNodes();
-        isPlaying = false;
-        isPaused = true;
-        clearInterval(progressTimer);
-        playPauseButton.textContent = '▶️';
+        playhead = getCurrentPlayhead()
+        stopSourceNodes()
+        isPlaying = false
+        isPaused = true
+        clearInterval(progressTimer)
+        playPauseButton.textContent = '▶️'
     } catch (error) {
-        console.error('Error during pause', error);
+        console.error('Error during pause', error)
     }
 }
 
@@ -278,88 +279,88 @@ function stopSourceNodes() {
     try {
         sourceNodes.forEach((source) => {
             try {
-                source.stop(0);
+                source.stop(0)
             } catch (error) {
                 // Ignore sources that have already finished.
             }
             try {
-                source.disconnect();
+                source.disconnect()
             } catch (error) {
                 // Ignore disconnect errors.
             }
-        });
-        sourceNodes = [];
+        })
+        sourceNodes = []
     } catch (error) {
-        console.error('Error during stopSourceNodes', error);
+        console.error('Error during stopSourceNodes', error)
     }
 }
 
 function getTrackDuration() {
     try {
-        return trackBuffers[0] ? trackBuffers[0].duration : 0;
+        return trackBuffers[0] ? trackBuffers[0].duration : 0
     } catch (error) {
-        console.error('Error during getTrackDuration', error);
+        console.error('Error during getTrackDuration', error)
     }
 }
 
 function getCurrentPlayhead() {
     try {
         if (!isPlaying || !audioContext) {
-            return playhead;
+            return playhead
         }
-        return playhead + (audioContext.currentTime - playbackStartedAt);
+        return playhead + (audioContext.currentTime - playbackStartedAt)
     } catch (error) {
-        console.error('Error during getCurrentPlayhead', error);
+        console.error('Error during getCurrentPlayhead', error)
     }
 }
 
 function formatTime(time) {
     try {
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        const minutes = Math.floor(time / 60)
+        const seconds = Math.floor(time % 60)
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`
     } catch (error) {
-        console.error('Error during formatTime', error);
+        console.error('Error during formatTime', error)
     }
 }
 
 function updateTrackProgress() {
     try {
-        const duration = getTrackDuration();
+        const duration = getTrackDuration()
         if (!duration) {
-            return;
+            return
         }
 
-        let currentTime = isPlaying ? getCurrentPlayhead() : playhead;
+        let currentTime = isPlaying ? getCurrentPlayhead() : playhead
         if (currentTime >= duration) {
-            currentTime = duration;
-            playhead = duration;
-            stopSourceNodes();
-            isPlaying = false;
-            isPaused = true;
-            clearInterval(progressTimer);
-            playPauseButton.textContent = '▶️';
+            currentTime = duration
+            playhead = duration
+            stopSourceNodes()
+            isPlaying = false
+            isPaused = true
+            clearInterval(progressTimer)
+            playPauseButton.textContent = '▶️'
         }
 
-        trackProgressSlider.value = (100 * currentTime) / duration;
+        trackProgressSlider.value = (100 * currentTime) / duration
 
-        progressLabel.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+        progressLabel.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`
     } catch (error) {
-        console.error('Error during updateTrackProgress', error);
+        console.error('Error during updateTrackProgress', error)
     }
 }
 
 function applyTrackVolumes(values) {
     values.forEach((value, index) => {
-        trackVolumeValues[index] = value;
-        const targetGain = mutedStates[index] ? 0 : value;
+        trackVolumeValues[index] = value
+        const targetGain = mutedStates[index] ? 0 : value
         if (gainNodes[index]) {
-            gainNodes[index].gain.value = targetGain;
+            gainNodes[index].gain.value = targetGain
         }
         if (trackVolumeSliders[index]) {
-            trackVolumeSliders[index].value = value;
+            trackVolumeSliders[index].value = value
         }
-    });
+    })
 }
 
 function updateTrackVolumes(s, a, t, b) {
@@ -369,148 +370,148 @@ function updateTrackVolumes(s, a, t, b) {
             parseFloat(a),
             parseFloat(t),
             parseFloat(b)
-        ]);
+        ])
     } catch (error) {
-        console.error('Error during updateTrackVolumes', error);
+        console.error('Error during updateTrackVolumes', error)
     }
 }
 
 function changeVolume(value, track) {
     try {
-        const volume = parseFloat(value);
+        const volume = parseFloat(value)
         if (track === 'soprano') {
-            applyTrackVolumes([volume, trackVolumeValues[1], trackVolumeValues[2], trackVolumeValues[3]]);
+            applyTrackVolumes([volume, trackVolumeValues[1], trackVolumeValues[2], trackVolumeValues[3]])
         } else if (track === 'alto') {
-            applyTrackVolumes([trackVolumeValues[0], volume, trackVolumeValues[2], trackVolumeValues[3]]);
+            applyTrackVolumes([trackVolumeValues[0], volume, trackVolumeValues[2], trackVolumeValues[3]])
         } else if (track === 'tenor') {
-            applyTrackVolumes([trackVolumeValues[0], trackVolumeValues[1], volume, trackVolumeValues[3]]);
+            applyTrackVolumes([trackVolumeValues[0], trackVolumeValues[1], volume, trackVolumeValues[3]])
         } else if (track === 'bass') {
-            applyTrackVolumes([trackVolumeValues[0], trackVolumeValues[1], trackVolumeValues[2], volume]);
+            applyTrackVolumes([trackVolumeValues[0], trackVolumeValues[1], trackVolumeValues[2], volume])
         }
     } catch (error) {
-        console.error('Error during changeVolume', error);
+        console.error('Error during changeVolume', error)
     }
 }
 
 function updatePanningValues(s, a, t, b) {
-    panningSliders[0].value = s;
-    panningSliders[1].value = a;
-    panningSliders[2].value = t;
-    panningSliders[3].value = b;
+    panningSliders[0].value = s
+    panningSliders[1].value = a
+    panningSliders[2].value = t
+    panningSliders[3].value = b
 
     panners.forEach((panner, index) => {
         if (panner) {
-            panner.pan.value = parseFloat(panningSliders[index].value);
+            panner.pan.value = parseFloat(panningSliders[index].value)
         }
-    });
+    })
 }
 
 function seekTrack(value) {
     try {
-        const percent = parseFloat(value);
+        const percent = parseFloat(value)
         if (trackBuffers.length === 0) {
-            return;
+            return
         }
 
-        const duration = getTrackDuration();
+        const duration = getTrackDuration()
 
         if (!isNaN(duration) && duration > 0) {
-            playhead = (percent / 100) * duration;
+            playhead = (percent / 100) * duration
 
             if (isPlaying || (isSeeking && isPaused)) {
-                startPlayback();
+                startPlayback()
             } else {
-                updateTrackProgress();
+                updateTrackProgress()
             }
         }
     } catch (error) {
-        console.error('Error during seekTrack', error);
+        console.error('Error during seekTrack', error)
     }
 }
 
 function muteTrack(index) {
-    mutedStates[index] = !mutedStates[index];
-    const button = [muteSopranoButton, muteAltoButton, muteTenorButton, muteBassButton][index];
-    button.textContent = mutedStates[index] ? '🔇' : '🔊';
-    trackVolumeSliders[index].disabled = mutedStates[index];
+    mutedStates[index] = !mutedStates[index]
+    const button = [muteSopranoButton, muteAltoButton, muteTenorButton, muteBassButton][index]
+    button.textContent = mutedStates[index] ? '🔇' : '🔊'
+    trackVolumeSliders[index].disabled = mutedStates[index]
 
     if (gainNodes[index]) {
-        gainNodes[index].gain.value = mutedStates[index] ? 0 : trackVolumeValues[index];
+        gainNodes[index].gain.value = mutedStates[index] ? 0 : trackVolumeValues[index]
     }
 }
 
 trackProgressSlider.addEventListener('input', (event) => {
-    isSeeking = true;
-    pausePlayback();
-    progressLabel.textContent = `${formatTime((event.target.value / 100) * getTrackDuration())} / ${formatTime(getTrackDuration())}`;
-    seekTrack(event.target.value);
-});
+    isSeeking = true
+    pausePlayback()
+    progressLabel.textContent = `${formatTime((event.target.value / 100) * getTrackDuration())} / ${formatTime(getTrackDuration())}`
+    seekTrack(event.target.value)
+})
 
 panningSliders.forEach((slider, index) => {
     slider.addEventListener('input', (event) => {
-        const value = parseFloat(event.target.value);
+        const value = parseFloat(event.target.value)
         if (panners[index]) {
-            panners[index].pan.value = value;
+            panners[index].pan.value = value
         }
-    });
-});
+    })
+})
 
 sopranoButton.addEventListener('click', () => {
-    heroVoice = "soprano";
-    updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume);
-    updatePanningValues(0, -1, -1, -1);
-});
+    heroVoice = "soprano"
+    updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume)
+    updatePanningValues(0, -1, -1, -1)
+})
 
 altoButton.addEventListener('click', () => {
-    heroVoice = "alto";
-    updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume);
-    updatePanningValues(1, 0, -1, -1);
-});
+    heroVoice = "alto"
+    updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume)
+    updatePanningValues(1, 0, -1, -1)
+})
 
 tenorButton.addEventListener('click', () => {
-    heroVoice = "tenor";
-    updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume);
-    updatePanningValues(1, 1, 0, -1);
-});
+    heroVoice = "tenor"
+    updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume)
+    updatePanningValues(1, 1, 0, -1)
+})
 
 bassButton.addEventListener('click', () => {
-    heroVoice = "bass";
-    updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0);
-    updatePanningValues(1, 1, 1, 0);
-});
+    heroVoice = "bass"
+    updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0)
+    updatePanningValues(1, 1, 1, 0)
+})
 
 fullMonoButton.addEventListener('click', () => {
-    heroVoice = "";
-    updateTrackVolumes(1.0, 1.0, 1.0, 1.0);
-    updatePanningValues(0, 0, 0, 0);
-});
+    heroVoice = ""
+    updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
+    updatePanningValues(0, 0, 0, 0)
+})
 
-let middleVoicesPan = 0.35;
+let middleVoicesPan = 0.35
 
 fullStereoButton.addEventListener('click', () => {
-    heroVoice = "";
-    updateTrackVolumes(1.0, 1.0, 1.0, 1.0);
-    updatePanningValues(1, middleVoicesPan, -middleVoicesPan, -1);
-});
+    heroVoice = ""
+    updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
+    updatePanningValues(1, middleVoicesPan, -middleVoicesPan, -1)
+})
 
 leaderStereoButton.addEventListener('click', () => {
-    heroVoice = "";
-    updateTrackVolumes(1.0, 1.0, 1.0, 1.0);
-    updatePanningValues(-1, -middleVoicesPan, middleVoicesPan, 1);
-});
+    heroVoice = ""
+    updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
+    updatePanningValues(-1, -middleVoicesPan, middleVoicesPan, 1)
+})
 
 backingVolumeSlider.addEventListener('input', () => {
-    otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value);
+    otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value)
 
     if (heroVoice === "soprano") {
-        updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume);
+        updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume)
     } else if (heroVoice === "alto") {
-        updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume);
+        updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume)
     } else if (heroVoice === "tenor") {
-        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume);
+        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume)
     } else if (heroVoice === "bass") {
-        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0);
+        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0)
     }
-});
+})
 
-updateTrackProgress();
+updateTrackProgress()
