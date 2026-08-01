@@ -59,7 +59,6 @@
     </div>
     <div>
         <label>S
-            <audio src="Accentuate/sop-accentuate.opus" preload="auto"></audio>
             <button id="muteSoprano" onclick="muteTrack(0)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
                 oninput="changeVolume(this.value, 'soprano')">
@@ -68,7 +67,6 @@
     </div>
     <div>
         <label>A
-            <audio src="Accentuate/alto-accentuate.opus" preload="auto"></audio>
             <button id="muteAlto" onclick="muteTrack(1)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
                 oninput="changeVolume(this.value, 'alto')">
@@ -77,7 +75,6 @@
     </div>
     <div>
         <label>T
-            <audio src="Accentuate/tenor-accentuate.opus" preload="auto"></audio>
             <button id="muteTenor" onclick="muteTrack(2)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
                 oninput="changeVolume(this.value, 'tenor')">
@@ -86,7 +83,6 @@
     </div>
     <div>
         <label>B
-            <audio src="Accentuate/bass-accentuate.opus" preload="auto"></audio>
             <button id="muteBass" onclick="muteTrack(3)">🔊</button>
             <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
                 oninput="changeVolume(this.value, 'bass')">
@@ -153,9 +149,25 @@
 
         const otherVoicesVolumeSlider = document.getElementById('otherVoicesVolume');
 
-        const audioElements = Array.from(document.querySelectorAll('audio'));
-        if (audioElements.length !== 4) {
-            throw new Error(`Expected 4 audio elements, but found ${audioElements.length}`);
+        // Safari 3.0+ "[object HTMLElementConstructor]" 
+        const isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
+
+        let songFolder = "Accentuate";
+        let audioFileExtension = ".opus";
+        
+        if (isSafari) {
+                audioFileExtension = ".aac";
+            }
+
+        let songFiles = [
+            "./" + songFolder + "/sop-accentuate" + audioFileExtension,
+            "./" + songFolder + "/alto-accentuate" + audioFileExtension,
+            "./" + songFolder + "/tenor-accentuate" + audioFileExtension,
+            "./" + songFolder + "/bass-accentuate" + audioFileExtension
+        ];
+
+        if (songFiles.length !== 4) {
+            throw new Error(`Expected 4 audio files, but found ${songFiles.length}`);
         }
 
         const panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'));
@@ -262,7 +274,7 @@
         }
 
         async function loadAudioBuffers() {
-            const urls = audioElements.map(audio => audio.getAttribute('src'));
+            const urls = songFiles;
             const decodedBuffers = [];
 
             for (const url of urls) {
