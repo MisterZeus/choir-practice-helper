@@ -2,6 +2,7 @@ const playPauseButton = document.getElementById('playPause')
 const stopButton = document.getElementById('stop')
 const safariWarning = document.getElementById('safariWarning')
 const audioStatus = document.getElementById('audioStatus')
+const progressLabel = document.getElementById('progressLabel')
 
 const trackProgressSlider = document.getElementById('trackProgress')
 
@@ -91,26 +92,18 @@ let mutedStates = new Array(totalExpectedFiles).fill(false)
 
 function setStatus(message) {
     if (audioStatus) {
-        audioStatus.textContent += message
+        audioStatus.textContent = message
     }
 }
 
-function playPause() {
+async function playPause() {
     try {
         if (!audioContext) {
-            try {
-                setupAudio()
-                window.__audioContext = audioContext
-                window.__panners = panners
-            } catch (error) {
-                window.__setupError = error
-                console.error('Audio setup failed', error)
-                return
-            }
+            await setupAudio()
         }
 
         if (audioContext.state === 'suspended') {
-            audioContext.resume()
+            await audioContext.resume()
         }
 
         if (isPaused) {
@@ -161,8 +154,6 @@ async function setupAudio() {
             throw new Error('Web Audio API is not supported in this browser.')
         }
 
-        stopButton.textContent = '.'
-
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)()
         }
@@ -198,6 +189,8 @@ async function setupAudio() {
 
 async function loadAudioBuffers() {
     try {
+        stopButton.textContent = '.'
+
         const urls = songFiles
         const decodedBuffers = []
 
@@ -221,6 +214,7 @@ async function loadAudioBuffers() {
         }
 
         trackBuffers = decodedBuffers
+
     } catch (error) {
         console.error('Error during loadAudioBuffers', error)
     }
@@ -256,6 +250,7 @@ function startPlayback() {
 
         isPlaying = true
         isPaused = false
+        isSeeking = false
         playPauseButton.textContent = '⏸️'
         stopButton.disabled = false
         clearInterval(progressTimer)
