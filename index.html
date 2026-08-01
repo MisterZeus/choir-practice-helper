@@ -9,25 +9,28 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
         }
 
-        h1 {
-            color: black;
-        }
-
+        a,
+        h1,
         p {
-            color: black;
+            text-align: center;
         }
 
-        label {
-            color: black;
-            white-space: nowrap;
+        div {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
         }
 
         button {
             font-size: 3rem;
-            margin: 6px;
-            padding: 4px;
+            margin: 5px;
+            padding: 5px;
             background-color: rgb(251, 184, 41);
             color: black;
             border: none;
@@ -39,6 +42,7 @@
             background-color: #45b300;
         }
 
+        label,
         input[type="range"] {
             padding-top: 15px;
             padding-bottom: 15px;
@@ -47,95 +51,88 @@
 </head>
 
 <body>
-    <div>
-        <h1>Choir Practice Helper</h1>
-        <p>A simple voice mixer to practice different choir parts.</p>
-        <p>Use the buttons to play/pause/stop all parts, or change volume and pan (left/right) presets.</p>
-        <p><b>Try using earphones for the best experience!</b></p>
-    </div>
+    <h1>Choir Practice Helper</h1>
+    <p>A simple voice mixer to practice different choir parts.</p>
+    <p>Use the buttons to play/pause/stop all parts, or change volume and pan (left/right) presets.</p>
+    <p><b>Try using earphones for the best experience!</b></p>
+    <p id="safariWarning"></p>
+    <p id="audioStatus" aria-live="polite" style="color: #666;"></p>
+
     <div>
         <button type="button" id="playPause" onclick="playPause()">▶️</button>
-        <button type="button" id="stop" onclick="stop()" hidden>⏹️</button>
-        <label id="safariWarning"></label>
+        <button type="button" id="stop" onclick="stop()" disabled>⬅️</button>
     </div>
     <div>
         <input id="trackProgress" type="range" min="0" max="100" value="0" onchange="seekTrack(this.value)">
         <label id="progressLabel">0:00 / 0:00</label>
     </div>
     <div>
-        <label>S
-            <button id="muteSoprano" onclick="muteTrack(0)">🔊</button>
-            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                oninput="changeVolume(this.value, 'soprano')">
-            <button id="presetSop">🦸</button>
-        </label>
+        <label>S</label>
+        <button id="muteSoprano" onclick="muteTrack(0)">🔊</button>
+        <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
+            oninput="changeVolume(this.value, 'soprano')">
+        <button id="presetSop">🦸</button>
+
     </div>
     <div>
-        <label>A
-            <button id="muteAlto" onclick="muteTrack(1)">🔊</button>
-            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                oninput="changeVolume(this.value, 'alto')">
-            <button id="presetAlto">🦸</button>
-        </label>
+        <label>A</label>
+        <button id="muteAlto" onclick="muteTrack(1)">🔊</button>
+        <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
+            oninput="changeVolume(this.value, 'alto')">
+        <button id="presetAlto">🦸</button>
     </div>
     <div>
-        <label>T
-            <button id="muteTenor" onclick="muteTrack(2)">🔊</button>
-            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                oninput="changeVolume(this.value, 'tenor')">
-            <button id="presetTenor">🦸</button>
-        </label>
+        <label>T</label>
+        <button id="muteTenor" onclick="muteTrack(2)">🔊</button>
+        <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
+            oninput="changeVolume(this.value, 'tenor')">
+        <button id="presetTenor">🦸</button>
     </div>
     <div>
-        <label>B
-            <button id="muteBass" onclick="muteTrack(3)">🔊</button>
-            <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
-                oninput="changeVolume(this.value, 'bass')">
-            <button id="presetBass">🦸</button>
-        </label>
+        <label>B</label>
+        <button id="muteBass" onclick="muteTrack(3)">🔊</button>
+        <input type="range" class="trackVolume" min="0" max="1" value="1" step="0.05"
+            oninput="changeVolume(this.value, 'bass')">
+        <button id="presetBass">🦸</button>
     </div>
     <div>
-        <p>
-            <label>Backing Volume:
-                <input id="otherVoicesVolume" type="range" class="volume" min="0" max="1" value="0.20" step="0.05"
-                    oninput="changeVolume(this.value, 'other')">
-            </label>
-        <p>
+        <label>Backing Volume: </label>
+        <input id="otherVoicesVolume" type="range" class="volume" min="0" max="1" value="0.20" step="0.05"
+            oninput="changeVolume(this.value, 'other')">
     </div>
     <div>
-        <label>S Left
-            <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
-            Right
-        </label>
+        <label>S Left </label>
+        <input type="range" class="pan" min="-1" max="1" value="1" step="0.1">
+        <label>Right</label>
     </div>
     <div>
-        <label>A Left
-            <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
-            Right
-        </label>
+        <label>A Left</label>
+        <input type="range" class="pan" min="-1" max="1" value="0.35" step="0.1">
+        <label>Right</label>
     </div>
     <div>
-        <label>T Left
-            <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
-            Right
-        </label>
+        <label>T Left</label>
+        <input type="range" class="pan" min="-1" max="1" value="-0.35" step="0.1">
+        <label>Right</label>
     </div>
     <div>
-        <label>B Left
-            <input type="range" class="pan" min="-1" max="1" value="-1" step="0.1">
-            Right
-        </label>
+        <label>B Left</label>
+        <input type="range" class="pan" min="-1" max="1" value="-1" step="0.1">
+        <label>Right</label>
     </div>
     <div>
         <button id="presetChoirStereo">BTAS</button>
         <button id="presetLeaderStereo">SATB</button>
         <button id="presetFullMono">⚖️</button>
     </div>
-    <a href="https://github.com/MisterZeus/choir-practice-helper/">Source Code</a>
+    <div>
+        <a href="https://github.com/MisterZeus/choir-practice-helper/">Source Code</a>
+    </div>
     <script>
         const playPauseButton = document.getElementById('playPause');
         const stopButton = document.getElementById('stop');
         const safariWarning = document.getElementById('safariWarning');
+        const audioStatus = document.getElementById('audioStatus');
 
         const trackProgressSlider = document.getElementById('trackProgress');
 
@@ -156,7 +153,16 @@
         const otherVoicesVolumeSlider = document.getElementById('otherVoicesVolume');
 
         // Safari 3.0+ "[object HTMLElementConstructor]" 
-        const isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
+        const isSafari = [
+            'iPad Simulator',
+            'iPhone Simulator',
+            'iPod Simulator',
+            'iPad',
+            'iPhone',
+            'iPod'
+        ].includes(navigator.platform)
+            // iPad on iOS 13 detection
+            || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
 
         let songFolder = "Accentuate";
         let audioFileExtension = ".opus";
@@ -203,7 +209,14 @@
         let trackVolumeValues = [1, 1, 1, 1];
         let mutedStates = [false, false, false, false];
 
+        function setStatus(message) {
+            if (audioStatus) {
+                audioStatus.textContent = message;
+            }
+        }
+
         async function playPause() {
+            stopButton.textContent = '.';
             if (!audioContext) {
                 try {
                     await setupAudio();
@@ -228,10 +241,13 @@
             }
 
             if (isSafari && isPlaying) {
-                safariWarning.textContent = "⚠️ Safari detected. If you cannot hear the audio, please turn off your Silent mode and turn your volume up.";
+                safariWarning.textContent = "⚠️ Safari detected." +
+                    " If you cannot hear the audio," +
+                    " please turn off your Silent mode and turn your volume up.";
             };
 
-            stopButton.hidden = false;
+            stopButton.disabled = false;
+            stopButton.textContent = '⏹️';
         }
 
         function stop() {
@@ -241,7 +257,8 @@
             isPaused = true;
             clearInterval(progressTimer);
             playPauseButton.textContent = '▶️';
-            stopButton.hidden = true;
+            stopButton.disabled = true;
+            stopButton.textContent = '⬅️';
             updateTrackProgress();
 
             if (isSafari && !isPlaying) {
@@ -299,6 +316,7 @@
                     setStatus('Playback is blocked because the current audio files are not being decoded reliably on iOS Safari. Re-encode them as MP3 or AAC and update the audio sources.');
                     throw error;
                 }
+                stopButton.textContent += '.';
             }
 
             trackBuffers = decodedBuffers;
@@ -334,7 +352,7 @@
             isPlaying = true;
             isPaused = false;
             playPauseButton.textContent = '⏸️';
-            stopButton.hidden = false;
+            stopButton.disabled = false;
             clearInterval(progressTimer);
             progressTimer = setInterval(updateTrackProgress, 250);
         }
