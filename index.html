@@ -97,7 +97,7 @@
     </div>
     <div>
         <label>Backing Volume: </label>
-        <input title="Backing Volume" id="otherVoicesVolume" type="range" class="volume" min="0" max="1" value="0.20" step="0.05"
+        <input title="Backing Volume" id="backingVolume" type="range" class="volume" min="0" max="1" value="0.20" step="0.05"
             oninput="changeVolume(this.value, 'other')">
     </div>
     <div>
@@ -150,7 +150,7 @@
         const fullStereoButton = document.getElementById('presetChoirStereo');
         const leaderStereoButton = document.getElementById('presetLeaderStereo');
 
-        const otherVoicesVolumeSlider = document.getElementById('otherVoicesVolume');
+        const backingVolumeSlider = document.getElementById('backingVolume');
 
         // Safari 3.0+ "[object HTMLElementConstructor]" 
         const isSafari = [
@@ -193,7 +193,7 @@
         }
 
         let heroVoice = "";
-        let otherVoicesReducedVolume = parseFloat(otherVoicesVolumeSlider.value);
+        let otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value);
 
         let audioContext;
         let trackBuffers = [];
@@ -563,8 +563,8 @@
             updatePanningValues(-1, -middleVoicesPan, middleVoicesPan, 1);
         });
 
-        otherVoicesVolumeSlider.addEventListener('input', () => {
-            otherVoicesReducedVolume = parseFloat(otherVoicesVolumeSlider.value);
+        backingVolumeSlider.addEventListener('input', () => {
+            otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value);
 
             if (heroVoice === "soprano") {
                 updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume);
