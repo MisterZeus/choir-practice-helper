@@ -1,7 +1,12 @@
+const safariWarning = document.getElementById('safariWarning')
+
 const playPauseButton = document.getElementById('playPause')
 const stopButton = document.getElementById('stop')
-const safariWarning = document.getElementById('safariWarning')
+
 const audioStatus = document.getElementById('audioStatus')
+
+const trackProgressContainer = document.getElementById('trackProgressContainer')
+
 const progressLabel = document.getElementById('progressLabel')
 
 const trackProgressSlider = document.getElementById('trackProgress')
@@ -10,36 +15,259 @@ let totalExpectedFiles = 4
 
 const trackVolumes = document.getElementById('trackVolumes')
 
+const panPresets = document.getElementById('panPresets')
+const songSelect = document.getElementById('songSelect')
+
 let muteButtons = []
+let trackVolumeSliders = []
+let presetButtons = []
+let isLoadingAudio = false
+
+function resetUiForNewSong() {
+    stopSourceNodes()
+    trackBuffers = []
+    gainNodes = []
+    panners = []
+    sourceNodes = []
+    trackVolumeValues = []
+    mutedStates = []
+    muteButtons = []
+    trackVolumeSliders = []
+    presetButtons = []
+    panningSliders = []
+    playhead = 0
+    playbackStartedAt = 0
+    isPlaying = false
+    isPaused = true
+    isSeeking = false
+    clearInterval(progressTimer)
+    progressTimer = null
+
+    if (trackVolumes) {
+        trackVolumes.replaceChildren()
+    }
+    if (panningControls) {
+        panningControls.replaceChildren()
+    }
+    if (panPresets) {
+        panPresets.style.display = 'none'
+    }
+    if (trackProgressContainer) {
+        trackProgressContainer.style.display = 'none'
+    }
+    if (backingVolumeControl) {
+        backingVolumeControl.style.display = 'none'
+    }
+    if (playPauseButton) {
+        playPauseButton.textContent = '▶️'
+    }
+    if (stopButton) {
+        stopButton.disabled = true
+        stopButton.textContent = '⬅️'
+    }
+    if (progressLabel) {
+        progressLabel.textContent = '0:00 / 0:00'
+    }
+    if (trackProgressSlider) {
+        trackProgressSlider.value = 0
+    }
+    if (audioStatus) {
+        audioStatus.textContent = ''
+    }
+    if (safariWarning) {
+        safariWarning.textContent = ''
+    }
+}
+
+async function populateSongSelect() {
+    if (!songSelect) {
+        return
+    }
+
+    const currentSelection = songSelect.value || songFolder
+    songSelect.replaceChildren()
+
+    const placeholderOption = document.createElement('option')
+    placeholderOption.value = ''
+    placeholderOption.textContent = '-- Choose a song --'
+    songSelect.appendChild(placeholderOption)
+
+    try {
+        const response = await fetch('./songs')
+        if (!response.ok) {
+            throw new Error(`Could not read songs folder: ${response.status}`)
+        }
+
+        const html = await response.text()
+        const matches = [...html.matchAll(/href=["']([^"']+)["']/g)]
+        const subfolders = matches
+            .map((match) => match[1])
+            .map((folder) => folder.replace(/\\/g, '/').replace(/\/$/, ''))
+            .map((folder) => folder.replace(/^\.\//, '').replace(/^\/+/, ''))
+            .filter((folder) => folder && folder !== '.' && folder !== '..' && !folder.includes('.'))
+            .filter((folder) => folder !== 'songs')
+
+        const uniqueSubfolders = [...new Set(subfolders)].sort()
+
+        if (uniqueSubfolders.length === 0) {
+            if (currentSelection) {
+                const fallbackOption = document.createElement('option')
+                fallbackOption.value = currentSelection
+                fallbackOption.textContent = currentSelection.replace(/^songs\//, '')
+                songSelect.appendChild(fallbackOption)
+                songSelect.value = currentSelection
+            } else {
+                songSelect.value = ''
+            }
+            return
+        }
+
+        uniqueSubfolders.forEach((folderName) => {
+            const label = folderName.replace(/^songs\//, '')
+            const option = document.createElement('option')
+            option.value = folderName
+            option.textContent = label
+            songSelect.appendChild(option)
+        })
+
+        const selectedValue = currentSelection && uniqueSubfolders.includes(currentSelection)
+            ? currentSelection
+            : uniqueSubfolders[0]
+
+        songFolder = selectedValue
+        songSelect.value = selectedValue
+    } catch (error) {
+        console.error('Error populating song select', error)
+        if (currentSelection) {
+            const fallbackOption = document.createElement('option')
+            fallbackOption.value = currentSelection
+            fallbackOption.textContent = currentSelection.replace(/^songs\//, '')
+            songSelect.appendChild(fallbackOption)
+            songSelect.value = currentSelection
+        } else {
+            const fallbackOption = document.createElement('option')
+            fallbackOption.value = ''
+            fallbackOption.textContent = 'No songs found'
+            fallbackOption.disabled = true
+            songSelect.appendChild(fallbackOption)
+            songSelect.value = ''
+        }
+    }
+}
+
+if (songSelect) {
+    songSelect.addEventListener('change', async () => {
+        const selectedSong = songSelect.value
+        if (!selectedSong) {
+            return
+        }
+
+        songFolder = selectedSong
+        resetUiForNewSong()
+
+        if (!audioContext) {
+            await setupAudio()
+        } else {
+            await loadAudioBuffers()
+        }
+    })
+}
 
 function getExpectedTrackCount() {
     return trackBuffers.length || songFiles.length || totalExpectedFiles
 }
 
-const muteButtonIds = [
-    'muteSoprano',
-    'muteAlto',
-    'muteTenor',
-    'muteBass'
-]
+function createTrackControlRow(index, label, voiceName) {
+    const row = document.createElement('div')
+    row.className = 'trackControlRow'
+
+    const labelElement = document.createElement('label')
+    labelElement.textContent = label
+
+    const muteButton = document.createElement('button')
+    muteButton.type = 'button'
+    muteButton.className = 'muteButton'
+    muteButton.textContent = '🔊'
+    muteButton.addEventListener('click', () => muteTrack(index))
+
+    const volumeSlider = document.createElement('input')
+    volumeSlider.type = 'range'
+    volumeSlider.title = `${voiceName} Volume`
+    volumeSlider.className = 'trackVolume'
+    volumeSlider.min = '0'
+    volumeSlider.max = '1'
+    volumeSlider.value = '1'
+    volumeSlider.step = '0.05'
+    volumeSlider.disabled = true
+    volumeSlider.addEventListener('input', (event) => {
+        changeVolume(event.target.value, voiceName)
+    })
+
+    const presetButton = document.createElement('button')
+    presetButton.type = 'button'
+    presetButton.className = 'presetButton'
+    presetButton.textContent = '🦸'
+    presetButton.addEventListener('click', () => {
+        const presetVoices = ['soprano', 'alto', 'tenor', 'bass']
+        const presetPanValues = [
+            [0, -1, -1, -1],
+            [1, 0, -1, -1],
+            [1, 1, 0, -1],
+            [1, 1, 1, 0]
+        ]
+        const volumes = [backingVolume, backingVolume, backingVolume, backingVolume]
+        volumes[index] = 1.0
+
+        if (heroVoice === presetVoices[index]) {
+            heroVoice = ''
+            updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
+            updatePanningValues(1, 0.35, -0.35, -1)
+            return
+        }
+
+        heroVoice = presetVoices[index]
+        updateTrackVolumes(...volumes)
+        updatePanningValues(...presetPanValues[index])
+    })
+
+    row.append(labelElement, muteButton, volumeSlider, presetButton)
+    return { row, muteButton, volumeSlider, presetButton }
+}
+
+function buildTrackControlRows() {
+    if (!trackVolumes) {
+        return []
+    }
+
+    trackVolumes.replaceChildren()
+
+    const voiceNames = ['soprano', 'alto', 'tenor', 'bass']
+    const labels = ['S', 'A', 'T', 'B']
+
+    const rows = voiceNames
+        .slice(0, getExpectedTrackCount())
+        .map((voiceName, index) => createTrackControlRow(index, labels[index], voiceName))
+
+    rows.forEach(({ row }) => {
+        trackVolumes.appendChild(row)
+    })
+
+    return rows
+}
 
 function initializeMuteButtons() {
     const expectedMuteButtonCount = getExpectedTrackCount()
-    muteButtons = muteButtonIds
+    muteButtons = Array.from(trackVolumes?.querySelectorAll('button.muteButton') || [])
         .slice(0, expectedMuteButtonCount)
-        .map((id) => document.getElementById(id))
-        .filter(Boolean)
 
     if (muteButtons.length !== expectedMuteButtonCount) {
         throw new Error(`Expected ${expectedMuteButtonCount} mute buttons, but found ${muteButtons.length}`)
     }
 }
 
-let trackVolumeSliders = []
-
 function initializeTrackVolumeSliders() {
     const expectedTrackVolumeSliderCount = getExpectedTrackCount()
-    trackVolumeSliders = Array.from(document.querySelectorAll('input[class="trackVolume"]'))
+    trackVolumeSliders = Array.from(trackVolumes?.querySelectorAll('input.trackVolume') || [])
         .slice(0, expectedTrackVolumeSliderCount)
 
     if (trackVolumeSliders.length !== expectedTrackVolumeSliderCount) {
@@ -52,64 +280,66 @@ function initializeTrackVolumeSliders() {
     }
 }
 
-let presetButtons = []
-const presetButtonIds = [
-    'presetSop',
-    'presetAlto',
-    'presetTenor',
-    'presetBass'
-]
-
 function initializePresetButtons() {
     const expectedPresetButtonCount = getExpectedTrackCount()
-    presetButtons = presetButtonIds
+    presetButtons = Array.from(trackVolumes?.querySelectorAll('button.presetButton') || [])
         .slice(0, expectedPresetButtonCount)
-        .map((id) => document.getElementById(id))
-        .filter(Boolean)
 
     if (presetButtons.length !== expectedPresetButtonCount) {
-        throw new Error(`Expected ${expectedPresetButtonCount} preset buttons,"
-            + "<br>but found ${presetButtons.length}`)
+        throw new Error(`Expected ${expectedPresetButtonCount} preset buttons, but found ${presetButtons.length}`)
     }
-
-    presetButtons.forEach((button, index) => {
-        button.addEventListener('click', () => {
-            const presetVoices = ['soprano', 'alto', 'tenor', 'bass']
-            const presetPanValues = [
-                [0, -1, -1, -1],
-                [1, 0, -1, -1],
-                [1, 1, 0, -1],
-                [1, 1, 1, 0]
-            ]
-            const volumes = [backingVolume, backingVolume, backingVolume, backingVolume]
-            volumes[index] = 1.0
-
-            if (heroVoice === presetVoices[index]) {
-                heroVoice = ""
-                updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
-                updatePanningValues(1, 0.35, -0.35, -1)
-                return
-            }
-
-            heroVoice = presetVoices[index]
-            updateTrackVolumes(...volumes)
-            updatePanningValues(...presetPanValues[index])
-        })
-    })
 }
 
 const fullMonoButton = document.getElementById('presetFullMono')
 const fullStereoButton = document.getElementById('presetChoirStereo')
 const leaderStereoButton = document.getElementById('presetLeaderStereo')
 
+const backingVolumeControl = document.getElementById('backingVolumeControl')
 const backingVolumeSlider = document.getElementById('backingVolume')
 
 let panningSliders = []
+const panningControls = document.getElementById('panningControls')
+
+function createPanningControls() {
+    if (!panningControls) {
+        return []
+    }
+
+    panningControls.replaceChildren()
+
+    const labels = ['S', 'A', 'T', 'B']
+    const defaultValues = [1, 0.35, -0.35, -1]
+
+    return labels
+        .slice(0, getExpectedTrackCount())
+        .map((label, index) => {
+            const row = document.createElement('div')
+            const labelElement = document.createElement('label')
+            labelElement.textContent = `${label} Left`
+
+            const slider = document.createElement('input')
+            slider.type = 'range'
+            slider.title = `${label} Pan`
+            slider.className = 'pan'
+            slider.min = '-1'
+            slider.max = '1'
+            slider.value = defaultValues[index]
+            slider.step = '0.1'
+            slider.disabled = true
+
+            const rightLabel = document.createElement('label')
+            rightLabel.textContent = 'Right'
+
+            row.append(labelElement, slider, rightLabel)
+            panningControls.appendChild(row)
+            return slider
+        })
+}
 
 function initializePanningSliders() {
     const expectedPanningSliderCount = getExpectedTrackCount()
 
-    panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'))
+    panningSliders = Array.from(panningControls?.querySelectorAll('input.pan') || [])
         .slice(0, expectedPanningSliderCount)
 
     if (panningSliders.length !== expectedPanningSliderCount) {
@@ -157,7 +387,30 @@ async function refreshSongFiles() {
         return
     }
 
-    const folderPath = `./${songFolder.replace(/^\.\/?/, '').replace(/\/$/, '')}`
+    const normalizedSongFolder = songFolder
+        .replace(/^\.\/?/, '')
+        .replace(/^\/+/, '')
+        .replace(/\/$/, '')
+
+    const folderCandidates = normalizedSongFolder === 'songs'
+        ? ['./songs']
+        : normalizedSongFolder.startsWith('songs/')
+            ? [`./${normalizedSongFolder}`]
+            : [`./songs/${normalizedSongFolder}`, `./${normalizedSongFolder}`]
+
+    let folderPath = null
+    for (const candidate of folderCandidates) {
+        const response = await fetch(candidate)
+        if (response.ok) {
+            folderPath = candidate
+            break
+        }
+    }
+
+    if (!folderPath) {
+        throw new Error(`Could not read folder ${folderCandidates.join(' or ')}`)
+    }
+
     const response = await fetch(folderPath)
     if (!response.ok) {
         throw new Error(`Could not read folder ${folderPath}: ${response.status}`)
@@ -183,16 +436,22 @@ async function refreshSongFiles() {
     songFiles = availableFiles.sort((a, b) => {
         const getVoiceOrder = (file) => {
             const lower = file.toLowerCase()
-            if (lower.includes('sop')) return 0
+            if (lower.includes('soprano')) return 0
             if (lower.includes('alto')) return 1
             if (lower.includes('tenor')) return 2
             if (lower.includes('bass')) return 3
+
+            // fallback string matches
+            if (lower.includes('sop')) return 0
+            if (lower.includes('alt')) return 1
+            if (lower.includes('ten')) return 2
+            if (lower.includes('bas')) return 3
             return 4
         }
 
         return getVoiceOrder(a) - getVoiceOrder(b)
     })
-    console.log(songFiles)
+    // console.log(songFiles)
 }
 
 let heroVoice = ""
@@ -220,6 +479,10 @@ function setStatus(message) {
 
 async function playPause() {
     try {
+        if (isLoadingAudio) {
+            return
+        }
+
         if (!audioContext) {
             await setupAudio()
         }
@@ -317,13 +580,35 @@ async function setupAudio() {
 
 async function loadAudioBuffers() {
     try {
+        isLoadingAudio = true
+        playPauseButton.disabled = true
         stopButton.textContent = '.'
+        setStatus('Loading audio tracks...')
 
         await refreshSongFiles()
 
+        if (songFiles.length === 0) {
+            setStatus(`No audio files found for ${songFolder}.`)
+            throw new Error(`No audio files found for ${songFolder}.`)
+        }
+
         if (songFiles.length !== totalExpectedFiles) {
+            setStatus(`Found ${songFiles.length} audio files for ${songFolder}, but expected ${totalExpectedFiles}.`)
             throw new Error(`Expected ${totalExpectedFiles} audio files, but found ${songFiles.length}`)
         }
+
+        buildTrackControlRows()
+        initializeMuteButtons()
+        initializeTrackVolumeSliders()
+        initializePresetButtons()
+        createPanningControls()
+
+        if (backingVolumeControl) {
+            backingVolumeControl.style.display = 'flex'
+        }
+
+        panPresets.style.display = 'flex'
+        trackProgressContainer.style.display = 'flex'
 
         const urls = songFiles
         const decodedBuffers = []
@@ -348,13 +633,15 @@ async function loadAudioBuffers() {
         }
 
         trackBuffers = decodedBuffers
-        initializeMuteButtons()
-        initializePresetButtons()
-        initializeTrackVolumeSliders()
         initializePanningSliders()
+        setStatus(`Loaded ${songFiles.length} audio tracks for ${songFolder}.`)
 
     } catch (error) {
         console.error('Error during loadAudioBuffers', error)
+        setStatus(`Unable to load audio for ${songFolder}.`)
+    } finally {
+        isLoadingAudio = false
+        playPauseButton.disabled = false
     }
 }
 
@@ -504,7 +791,7 @@ function applyTrackVolumes(values) {
         }
 
         let lowVolumeThreshold = 0.1
-        let mediumVolumeThreshold = 0.5
+        let mediumVolumeThreshold = 0.7
         let hysterisis = 0.3
 
         if (!mutedStates[index]) {
@@ -660,3 +947,4 @@ backingVolumeSlider.addEventListener('input', () => {
 })
 
 updateTrackProgress()
+populateSongSelect()
