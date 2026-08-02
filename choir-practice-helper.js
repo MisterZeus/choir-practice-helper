@@ -6,15 +6,97 @@ const progressLabel = document.getElementById('progressLabel')
 
 const trackProgressSlider = document.getElementById('trackProgress')
 
-const muteSopranoButton = document.getElementById('muteSoprano')
-const muteAltoButton = document.getElementById('muteAlto')
-const muteTenorButton = document.getElementById('muteTenor')
-const muteBassButton = document.getElementById('muteBass')
+let totalExpectedFiles = 4
 
-const sopranoButton = document.getElementById('presetSop')
-const altoButton = document.getElementById('presetAlto')
-const tenorButton = document.getElementById('presetTenor')
-const bassButton = document.getElementById('presetBass')
+const trackVolumes = document.getElementById('trackVolumes')
+
+let muteButtons = []
+
+function getExpectedTrackCount() {
+    return trackBuffers.length || songFiles.length || totalExpectedFiles
+}
+
+const muteButtonIds = [
+    'muteSoprano',
+    'muteAlto',
+    'muteTenor',
+    'muteBass'
+]
+
+function initializeMuteButtons() {
+    const expectedMuteButtonCount = getExpectedTrackCount()
+    muteButtons = muteButtonIds
+        .slice(0, expectedMuteButtonCount)
+        .map((id) => document.getElementById(id))
+        .filter(Boolean)
+
+    if (muteButtons.length !== expectedMuteButtonCount) {
+        throw new Error(`Expected ${expectedMuteButtonCount} mute buttons, but found ${muteButtons.length}`)
+    }
+}
+
+let trackVolumeSliders = []
+
+function initializeTrackVolumeSliders() {
+    const expectedTrackVolumeSliderCount = getExpectedTrackCount()
+    trackVolumeSliders = Array.from(document.querySelectorAll('input[class="trackVolume"]'))
+        .slice(0, expectedTrackVolumeSliderCount)
+
+    if (trackVolumeSliders.length !== expectedTrackVolumeSliderCount) {
+        throw new Error(`Expected ${expectedTrackVolumeSliderCount} track volume sliders, but found ${trackVolumeSliders.length}`)
+    }
+
+    for (let index = 0; index < trackVolumeSliders.length; index += 1) {
+        const slider = trackVolumeSliders[index]
+        slider.disabled = false
+    }
+}
+
+let presetButtons = []
+const presetButtonIds = [
+    'presetSop',
+    'presetAlto',
+    'presetTenor',
+    'presetBass'
+]
+
+function initializePresetButtons() {
+    const expectedPresetButtonCount = getExpectedTrackCount()
+    presetButtons = presetButtonIds
+        .slice(0, expectedPresetButtonCount)
+        .map((id) => document.getElementById(id))
+        .filter(Boolean)
+
+    if (presetButtons.length !== expectedPresetButtonCount) {
+        throw new Error(`Expected ${expectedPresetButtonCount} preset buttons,"
+            + "<br>but found ${presetButtons.length}`)
+    }
+
+    presetButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            const presetVoices = ['soprano', 'alto', 'tenor', 'bass']
+            const presetPanValues = [
+                [0, -1, -1, -1],
+                [1, 0, -1, -1],
+                [1, 1, 0, -1],
+                [1, 1, 1, 0]
+            ]
+            const volumes = [backingVolume, backingVolume, backingVolume, backingVolume]
+            volumes[index] = 1.0
+
+            if (heroVoice === presetVoices[index]) {
+                heroVoice = ""
+                updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
+                updatePanningValues(1, 0.35, -0.35, -1)
+                return
+            }
+
+            heroVoice = presetVoices[index]
+            updateTrackVolumes(...volumes)
+            updatePanningValues(...presetPanValues[index])
+        })
+    })
+}
 
 const fullMonoButton = document.getElementById('presetFullMono')
 const fullStereoButton = document.getElementById('presetChoirStereo')
@@ -22,16 +104,22 @@ const leaderStereoButton = document.getElementById('presetLeaderStereo')
 
 const backingVolumeSlider = document.getElementById('backingVolume')
 
-let totalExpectedFiles = 4
+let panningSliders = []
 
-const panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'))
-if (panningSliders.length !== totalExpectedFiles) {
-    throw new Error(`Expected ${totalExpectedFiles} panning sliders, but found ${panningSliders.length}`)
-}
+function initializePanningSliders() {
+    const expectedPanningSliderCount = getExpectedTrackCount()
 
-const trackVolumeSliders = Array.from(document.querySelectorAll('input[class="trackVolume"]'))
-if (trackVolumeSliders.length !== totalExpectedFiles) {
-    throw new Error(`Expected ${totalExpectedFiles} track volume sliders, but found ${trackVolumeSliders.length}`)
+    panningSliders = Array.from(document.querySelectorAll('input[class="pan"]'))
+        .slice(0, expectedPanningSliderCount)
+
+    if (panningSliders.length !== expectedPanningSliderCount) {
+        throw new Error(`Expected ${expectedPanningSliderCount} panning sliders, but found ${panningSliders.length}`)
+    }
+
+    for (let index = 0; index < panningSliders.length; index += 1) {
+        const slider = panningSliders[index]
+        slider.disabled = false
+    }
 }
 
 // Safari 3.0+ "[object HTMLElementConstructor]"
@@ -62,19 +150,53 @@ if (is_iOS_Safari) {
     audioFileExtension = ".aac"
 }
 
-let songFiles = [
-    "./" + songFolder + "/sop-accentuate" + audioFileExtension,
-    "./" + songFolder + "/alto-accentuate" + audioFileExtension,
-    "./" + songFolder + "/tenor-accentuate" + audioFileExtension,
-    "./" + songFolder + "/bass-accentuate" + audioFileExtension
-]
+let songFiles = []
 
-if (songFiles.length !== totalExpectedFiles) {
-    throw new Error(`Expected ${totalExpectedFiles} audio files, but found ${songFiles.length}`)
+async function refreshSongFiles() {
+    if (!songFolder) {
+        return
+    }
+
+    const folderPath = `./${songFolder.replace(/^\.\/?/, '').replace(/\/$/, '')}`
+    const response = await fetch(folderPath)
+    if (!response.ok) {
+        throw new Error(`Could not read folder ${folderPath}: ${response.status}`)
+    }
+
+    const html = await response.text()
+    const matches = [...html.matchAll(/href=["']([^"']+)["']/g)]
+    const availableFiles = matches
+        .map((match) => match[1])
+        .filter((file) => file.endsWith(audioFileExtension))
+        .map((file) => file.replace(/\\/g, '/'))
+        .map((file) => {
+            const normalizedFile = file.replace(/^\.\//, '').replace(/^\/+/, '')
+            const normalizedFolder = folderPath.replace(/^\.\//, '').replace(/^\/+/, '').replace(/\/$/, '')
+
+            if (normalizedFile === normalizedFolder || normalizedFile.startsWith(`${normalizedFolder}/`)) {
+                return `./${normalizedFile}`
+            }
+
+            return `./${normalizedFolder}/${normalizedFile}`
+        })
+
+    songFiles = availableFiles.sort((a, b) => {
+        const getVoiceOrder = (file) => {
+            const lower = file.toLowerCase()
+            if (lower.includes('sop')) return 0
+            if (lower.includes('alto')) return 1
+            if (lower.includes('tenor')) return 2
+            if (lower.includes('bass')) return 3
+            return 4
+        }
+
+        return getVoiceOrder(a) - getVoiceOrder(b)
+    })
+    console.log(songFiles)
 }
 
 let heroVoice = ""
-let otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value)
+let backingVolume = parseFloat(backingVolumeSlider.value)
 
 let audioContext
 let trackBuffers = []
@@ -87,8 +209,8 @@ let isSeeking = false
 let playhead = 0
 let playbackStartedAt = 0
 let progressTimer = null
-let trackVolumeValues = new Array(totalExpectedFiles).fill(1)
-let mutedStates = new Array(totalExpectedFiles).fill(false)
+let trackVolumeValues = []
+let mutedStates = []
 
 function setStatus(message) {
     if (audioStatus) {
@@ -166,8 +288,14 @@ async function setupAudio() {
             await loadAudioBuffers()
         }
 
+        const trackCount = getExpectedTrackCount()
+        if (trackVolumeValues.length !== trackCount) {
+            trackVolumeValues = new Array(trackCount).fill(1)
+            mutedStates = new Array(trackCount).fill(false)
+        }
+
         if (gainNodes.length === 0) {
-            for (let index = 0; index < totalExpectedFiles; index += 1) {
+            for (let index = 0; index < trackCount; index += 1) {
                 const gainNode = audioContext.createGain()
                 gainNode.gain.value = trackVolumeValues[index]
 
@@ -190,6 +318,12 @@ async function setupAudio() {
 async function loadAudioBuffers() {
     try {
         stopButton.textContent = '.'
+
+        await refreshSongFiles()
+
+        if (songFiles.length !== totalExpectedFiles) {
+            throw new Error(`Expected ${totalExpectedFiles} audio files, but found ${songFiles.length}`)
+        }
 
         const urls = songFiles
         const decodedBuffers = []
@@ -214,6 +348,10 @@ async function loadAudioBuffers() {
         }
 
         trackBuffers = decodedBuffers
+        initializeMuteButtons()
+        initializePresetButtons()
+        initializeTrackVolumeSliders()
+        initializePanningSliders()
 
     } catch (error) {
         console.error('Error during loadAudioBuffers', error)
@@ -355,12 +493,33 @@ function updateTrackProgress() {
 function applyTrackVolumes(values) {
     values.forEach((value, index) => {
         trackVolumeValues[index] = value
+
         const targetGain = mutedStates[index] ? 0 : value
+
         if (gainNodes[index]) {
             gainNodes[index].gain.value = targetGain
         }
         if (trackVolumeSliders[index]) {
             trackVolumeSliders[index].value = value
+        }
+
+        let lowVolumeThreshold = 0.1
+        let mediumVolumeThreshold = 0.5
+        let hysterisis = 0.3
+
+        if (!mutedStates[index]) {
+            if (trackVolumeSliders[index].value < lowVolumeThreshold) {
+                muteButtons[index].textContent = '🔈'
+                lowVolumeThreshold += hysterisis
+            } else if (trackVolumeSliders[index].value >= lowVolumeThreshold
+                && trackVolumeSliders[index].value < mediumVolumeThreshold) {
+                muteButtons[index].textContent = '🔉'
+                lowVolumeThreshold -= hysterisis
+                mediumVolumeThreshold += hysterisis
+            } else {
+                muteButtons[index].textContent = '🔊'
+                mediumVolumeThreshold -= hysterisis
+            };
         }
     })
 }
@@ -432,10 +591,18 @@ function seekTrack(value) {
 }
 
 function muteTrack(index) {
+    if (index < 0 || index >= mutedStates.length) {
+        return
+    }
+
     mutedStates[index] = !mutedStates[index]
-    const button = [muteSopranoButton, muteAltoButton, muteTenorButton, muteBassButton][index]
-    button.textContent = mutedStates[index] ? '🔇' : '🔊'
-    trackVolumeSliders[index].disabled = mutedStates[index]
+    const button = muteButtons[index]
+    if (button) {
+        button.textContent = mutedStates[index] ? '🔇' : '🔊'
+    }
+    if (trackVolumeSliders[index]) {
+        trackVolumeSliders[index].disabled = mutedStates[index]
+    }
 
     if (gainNodes[index]) {
         gainNodes[index].gain.value = mutedStates[index] ? 0 : trackVolumeValues[index]
@@ -456,30 +623,6 @@ panningSliders.forEach((slider, index) => {
             panners[index].pan.value = value
         }
     })
-})
-
-sopranoButton.addEventListener('click', () => {
-    heroVoice = "soprano"
-    updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume)
-    updatePanningValues(0, -1, -1, -1)
-})
-
-altoButton.addEventListener('click', () => {
-    heroVoice = "alto"
-    updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume)
-    updatePanningValues(1, 0, -1, -1)
-})
-
-tenorButton.addEventListener('click', () => {
-    heroVoice = "tenor"
-    updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume)
-    updatePanningValues(1, 1, 0, -1)
-})
-
-bassButton.addEventListener('click', () => {
-    heroVoice = "bass"
-    updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0)
-    updatePanningValues(1, 1, 1, 0)
 })
 
 fullMonoButton.addEventListener('click', () => {
@@ -503,16 +646,16 @@ leaderStereoButton.addEventListener('click', () => {
 })
 
 backingVolumeSlider.addEventListener('input', () => {
-    otherVoicesReducedVolume = parseFloat(backingVolumeSlider.value)
+    backingVolume = parseFloat(backingVolumeSlider.value)
 
     if (heroVoice === "soprano") {
-        updateTrackVolumes(1.0, otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume)
+        updateTrackVolumes(1.0, backingVolume, backingVolume, backingVolume)
     } else if (heroVoice === "alto") {
-        updateTrackVolumes(otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume, otherVoicesReducedVolume)
+        updateTrackVolumes(backingVolume, 1.0, backingVolume, backingVolume)
     } else if (heroVoice === "tenor") {
-        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0, otherVoicesReducedVolume)
+        updateTrackVolumes(backingVolume, backingVolume, 1.0, backingVolume)
     } else if (heroVoice === "bass") {
-        updateTrackVolumes(otherVoicesReducedVolume, otherVoicesReducedVolume, otherVoicesReducedVolume, 1.0)
+        updateTrackVolumes(backingVolume, backingVolume, backingVolume, 1.0)
     }
 })
 
