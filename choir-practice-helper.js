@@ -114,8 +114,8 @@ async function playPause() {
 
         if (is_iOS_Safari && isPlaying) {
             safariWarning.textContent = "⚠️ Safari detected." +
-                "\nIf you cannot hear the audio," +
-                "\nplease turn off your Silent mode and turn your volume up."
+                "<br>If you cannot hear the audio," +
+                "<br>please turn off your Silent mode and turn your volume up."
         };
 
         stopButton.disabled = false
@@ -123,7 +123,7 @@ async function playPause() {
     } catch (error) {
         console.error('Error during audio setup', error)
         setStatus('Error during audio setup.'
-            + '\nOn iOS Safari, these files may need to be re-encoded to AAC for reliable playback.')
+            + '<br>On iOS Safari, audio files may need to be re-encoded to AAC for reliable playback.')
         return
     }
 }
