@@ -26,11 +26,11 @@ let isLoadingAudio = false
 function resetUiForNewSong() {
     stopSourceNodes()
 
-    //trackBuffers[songFolder] = []
+    trackBuffers = []
 
     sourceNodes = []
-    //gainNodes = []
-    //panners = []
+    gainNodes = []
+    panners = []
 
     if (playPauseButton) { playPauseButton.textContent = '▶️' }
     if (stopButton) {
@@ -46,20 +46,20 @@ function resetUiForNewSong() {
 
     //if (trackProgressContainer) { trackProgressContainer.style.display = 'none' }
 
-    //muteButtons = []
-    //mutedStates = []
+    muteButtons = []
+    mutedStates = []
 
-    //trackVolumeSliders = []
-    //if (trackVolumes) { trackVolumes.replaceChildren() }
-    //trackVolumeValues = []
+    trackVolumeSliders = []
+    if (trackVolumes) { trackVolumes.replaceChildren() }
+    trackVolumeValues = []
 
-    //presetButtons = []
-    //if (panPresets) { panPresets.style.display = 'none' }
+    presetButtons = []
+    if (panPresets) { panPresets.style.display = 'none' }
 
-    //if (backingVolumeControl) { backingVolumeControl.style.display = 'none' }
+    if (backingVolumeControl) { backingVolumeControl.style.display = 'none' }
 
-    //panningSliders = []
-    //if (panningControls) { panningControls.replaceChildren() }
+    panningSliders = []
+    if (panningControls) { panningControls.replaceChildren() }
 
     playhead = 0
     playbackStartedAt = 0
