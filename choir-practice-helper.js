@@ -25,58 +25,50 @@ let isLoadingAudio = false
 
 function resetUiForNewSong() {
     stopSourceNodes()
-    trackBuffers = []
-    gainNodes = []
-    panners = []
+
+    //trackBuffers[songFolder] = []
+
     sourceNodes = []
-    trackVolumeValues = []
-    mutedStates = []
-    muteButtons = []
-    trackVolumeSliders = []
-    presetButtons = []
-    panningSliders = []
+    //gainNodes = []
+    //panners = []
+
+    if (playPauseButton) { playPauseButton.textContent = '▶️' }
+    if (stopButton) {
+        stopButton.disabled = true
+        stopButton.textContent = '⬅️'
+    }
+
+    if (audioStatus) { audioStatus.textContent = '' }
+    if (safariWarning) { safariWarning.textContent = '' }
+
+    if (progressLabel) { progressLabel.textContent = '0:00 / 0:00' }
+    if (trackProgressSlider) { trackProgressSlider.value = 0 }
+
+    //if (trackProgressContainer) { trackProgressContainer.style.display = 'none' }
+
+    //muteButtons = []
+    //mutedStates = []
+
+    //trackVolumeSliders = []
+    //if (trackVolumes) { trackVolumes.replaceChildren() }
+    //trackVolumeValues = []
+
+    //presetButtons = []
+    //if (panPresets) { panPresets.style.display = 'none' }
+
+    //if (backingVolumeControl) { backingVolumeControl.style.display = 'none' }
+
+    //panningSliders = []
+    //if (panningControls) { panningControls.replaceChildren() }
+
     playhead = 0
     playbackStartedAt = 0
     isPlaying = false
     isPaused = true
     isSeeking = false
+
     clearInterval(progressTimer)
     progressTimer = null
-
-    if (trackVolumes) {
-        trackVolumes.replaceChildren()
-    }
-    if (panningControls) {
-        panningControls.replaceChildren()
-    }
-    if (panPresets) {
-        panPresets.style.display = 'none'
-    }
-    if (trackProgressContainer) {
-        trackProgressContainer.style.display = 'none'
-    }
-    if (backingVolumeControl) {
-        backingVolumeControl.style.display = 'none'
-    }
-    if (playPauseButton) {
-        playPauseButton.textContent = '▶️'
-    }
-    if (stopButton) {
-        stopButton.disabled = true
-        stopButton.textContent = '⬅️'
-    }
-    if (progressLabel) {
-        progressLabel.textContent = '0:00 / 0:00'
-    }
-    if (trackProgressSlider) {
-        trackProgressSlider.value = 0
-    }
-    if (audioStatus) {
-        audioStatus.textContent = ''
-    }
-    if (safariWarning) {
-        safariWarning.textContent = ''
-    }
 }
 
 function normalizePathValue(value) {
@@ -167,6 +159,7 @@ if (songSelect) {
         }
 
         songFolder = selectedSong
+
         resetUiForNewSong()
 
         await setupAudio()
@@ -417,6 +410,7 @@ async function refreshSongFiles() {
             return getVoiceOrder(a) - getVoiceOrder(b)
         })
 }
+
 let heroVoice = ""
 let backingVolume = parseFloat(backingVolumeSlider.value)
 
