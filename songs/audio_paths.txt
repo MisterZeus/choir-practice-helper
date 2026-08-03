@@ -1,24 +1,24 @@
-Accentuate\alto-accentuate.opus
-Accentuate\bass-accentuate.opus
-Accentuate\sop-accentuate.opus
-Accentuate\tenor-accentuate.opus
-Accentuate\alto-accentuate.aac
-Accentuate\bass-accentuate.aac
-Accentuate\sop-accentuate.aac
-Accentuate\tenor-accentuate.aac
-Be My Baby\be-my-baby-alto.opus
-Be My Baby\be-my-baby-bass.opus
-Be My Baby\be-my-baby-sop.opus
-Be My Baby\be-my-baby-tenor.opus
-Be My Baby\be-my-baby-alto.aac
-Be My Baby\be-my-baby-bass.aac
-Be My Baby\be-my-baby-sop.aac
-Be My Baby\be-my-baby-tenor.aac
-Choo Choo Ch-boogie\choo-choo-chboogie-alto.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-bass.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-sop.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-ten.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-alto.aac
-Choo Choo Ch-boogie\choo-choo-chboogie-bass.aac
-Choo Choo Ch-boogie\choo-choo-chboogie-sop.aac
-Choo Choo Ch-boogie\choo-choo-chboogie-ten.aac
+Accentuate\alto-accentuate24K.opus
+Accentuate\bass-accentuate24K.opus
+Accentuate\sop-accentuate24K.opus
+Accentuate\tenor-accentuate24K.opus
+Accentuate\alto-accentuate24K.aac
+Accentuate\bass-accentuate24K.aac
+Accentuate\sop-accentuate24K.aac
+Accentuate\tenor-accentuate24K.aac
+Be My Baby\be-my-baby-alto24K.opus
+Be My Baby\be-my-baby-bass24K.opus
+Be My Baby\be-my-baby-sop24K.opus
+Be My Baby\be-my-baby-tenor24K.opus
+Be My Baby\be-my-baby-alto24K.aac
+Be My Baby\be-my-baby-bass24K.aac
+Be My Baby\be-my-baby-sop24K.aac
+Be My Baby\be-my-baby-tenor24K.aac
+Choo Choo Ch-boogie\choo-choo-chboogie-alto24K.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-bass24K.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-sop24K.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-ten24K.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-alto24K.aac
+Choo Choo Ch-boogie\choo-choo-chboogie-bass24K.aac
+Choo Choo Ch-boogie\choo-choo-chboogie-sop24K.aac
+Choo Choo Ch-boogie\choo-choo-chboogie-ten24K.aac
