@@ -79,12 +79,39 @@ function resetUiForNewSong() {
     }
 }
 
+function normalizePathValue(value) {
+    return String(value || '')
+        .replace(/\\/g, '/')
+        .replace(/^\.\//, '')
+        .replace(/^\/+/, '')
+        .replace(/\/$/, '')
+}
+
+function normalizeSongFolder(value) {
+    return normalizePathValue(value)
+        .replace(/^songs\//, '')
+        .split('/')[0]
+        .trim()
+}
+
+async function readAudioPaths() {
+    const response = await fetch('./songs/audio_paths.txt')
+    if (!response.ok) {
+        throw new Error(`Could not read audio paths list: ${response.status}`)
+    }
+
+    return (await response.text())
+        .split(/\r?\n/)
+        .map((line) => normalizePathValue(line))
+        .filter((line) => line && !line.startsWith('#'))
+}
+
 async function populateSongSelect() {
     if (!songSelect) {
         return
     }
 
-    const currentSelection = songSelect.value || songFolder
+    const currentSelection = normalizeSongFolder(songSelect.value || songFolder)
     songSelect.replaceChildren()
 
     const placeholderOption = document.createElement('option')
@@ -93,71 +120,48 @@ async function populateSongSelect() {
     songSelect.appendChild(placeholderOption)
 
     try {
-        const response = await fetch('./songs')
-        if (!response.ok) {
-            throw new Error(`Could not read songs folder: ${response.status}`)
-        }
+        const audioPaths = await readAudioPaths()
+        const songFolders = [...new Set(audioPaths
+            .map((path) => normalizeSongFolder(path))
+            .filter(Boolean))].sort()
 
-        const html = await response.text()
-        const matches = [...html.matchAll(/href=["']([^"']+)["']/g)]
-        const subfolders = matches
-            .map((match) => match[1])
-            .map((folder) => folder.replace(/\\/g, '/').replace(/\/$/, ''))
-            .map((folder) => folder.replace(/^\.\//, '').replace(/^\/+/, ''))
-            .filter((folder) => folder && folder !== '.' && folder !== '..' && !folder.includes('.'))
-            .filter((folder) => folder !== 'songs')
-
-        const uniqueSubfolders = [...new Set(subfolders)].sort()
-
-        if (uniqueSubfolders.length === 0) {
-            if (currentSelection) {
-                const fallbackOption = document.createElement('option')
-                fallbackOption.value = currentSelection
-                fallbackOption.textContent = currentSelection.replace(/^songs\//, '')
-                songSelect.appendChild(fallbackOption)
-                songSelect.value = currentSelection
-            } else {
-                songSelect.value = ''
-            }
-            return
-        }
-
-        uniqueSubfolders.forEach((folderName) => {
-            const label = folderName.replace(/^songs\//, '')
-            const option = document.createElement('option')
-            option.value = folderName
-            option.textContent = label
-            songSelect.appendChild(option)
-        })
-
-        const selectedValue = currentSelection && uniqueSubfolders.includes(currentSelection)
-            ? currentSelection
-            : uniqueSubfolders[0]
-
-        songFolder = selectedValue
-        songSelect.value = selectedValue
-    } catch (error) {
-        console.error('Error populating song select', error)
-        if (currentSelection) {
-            const fallbackOption = document.createElement('option')
-            fallbackOption.value = currentSelection
-            fallbackOption.textContent = currentSelection.replace(/^songs\//, '')
-            songSelect.appendChild(fallbackOption)
-            songSelect.value = currentSelection
-        } else {
+        if (songFolders.length === 0) {
             const fallbackOption = document.createElement('option')
             fallbackOption.value = ''
             fallbackOption.textContent = 'No songs found'
             fallbackOption.disabled = true
             songSelect.appendChild(fallbackOption)
             songSelect.value = ''
+            return
         }
+
+        songFolders.forEach((folderName) => {
+            const option = document.createElement('option')
+            option.value = folderName
+            option.textContent = folderName
+            songSelect.appendChild(option)
+        })
+
+        const selectedValue = songFolders.includes(currentSelection)
+            ? currentSelection
+            : songFolders[0]
+
+        songFolder = selectedValue
+        songSelect.value = selectedValue
+    } catch (error) {
+        console.error('Error populating song select', error)
+        const fallbackOption = document.createElement('option')
+        fallbackOption.value = ''
+        fallbackOption.textContent = 'No songs found'
+        fallbackOption.disabled = true
+        songSelect.appendChild(fallbackOption)
+        songSelect.value = ''
     }
 }
 
 if (songSelect) {
     songSelect.addEventListener('change', async () => {
-        const selectedSong = songSelect.value
+        const selectedSong = normalizeSongFolder(songSelect.value)
         if (!selectedSong) {
             return
         }
@@ -165,11 +169,7 @@ if (songSelect) {
         songFolder = selectedSong
         resetUiForNewSong()
 
-        if (!audioContext) {
-            await setupAudio()
-        } else {
-            await loadAudioBuffers()
-        }
+        await setupAudio()
     })
 }
 
@@ -384,76 +384,39 @@ let songFiles = []
 
 async function refreshSongFiles() {
     if (!songFolder) {
+        songFiles = []
         return
     }
 
-    const normalizedSongFolder = songFolder
-        .replace(/^\.\/?/, '')
-        .replace(/^\/+/, '')
-        .replace(/\/$/, '')
+    const targetFolder = normalizeSongFolder(songFolder)
+    const audioPaths = await readAudioPaths()
 
-    const folderCandidates = normalizedSongFolder === 'songs'
-        ? ['./songs']
-        : normalizedSongFolder.startsWith('songs/')
-            ? [`./${normalizedSongFolder}`]
-            : [`./songs/${normalizedSongFolder}`, `./${normalizedSongFolder}`]
+    songFiles = audioPaths
+        .map((path) => normalizePathValue(path).replace(/^songs\//, ''))
+        .filter((path) => {
+            const [folderName] = path.split('/')
+            return folderName === targetFolder
+        })
+        .filter((path) => path.toLowerCase().endsWith(audioFileExtension.toLowerCase()))
+        .map((path) => `./songs/${path}`)
+        .sort((a, b) => {
+            const getVoiceOrder = (file) => {
+                const lower = file.toLowerCase()
+                if (lower.includes('soprano')) return 0
+                if (lower.includes('alto')) return 1
+                if (lower.includes('tenor')) return 2
+                if (lower.includes('bass')) return 3
 
-    let folderPath = null
-    for (const candidate of folderCandidates) {
-        const response = await fetch(candidate)
-        if (response.ok) {
-            folderPath = candidate
-            break
-        }
-    }
-
-    if (!folderPath) {
-        throw new Error(`Could not read folder ${folderCandidates.join(' or ')}`)
-    }
-
-    const response = await fetch(folderPath)
-    if (!response.ok) {
-        throw new Error(`Could not read folder ${folderPath}: ${response.status}`)
-    }
-
-    const html = await response.text()
-    const matches = [...html.matchAll(/href=["']([^"']+)["']/g)]
-    const availableFiles = matches
-        .map((match) => match[1])
-        .filter((file) => file.endsWith(audioFileExtension))
-        .map((file) => file.replace(/\\/g, '/'))
-        .map((file) => {
-            const normalizedFile = file.replace(/^\.\//, '').replace(/^\/+/, '')
-            const normalizedFolder = folderPath.replace(/^\.\//, '').replace(/^\/+/, '').replace(/\/$/, '')
-
-            if (normalizedFile === normalizedFolder || normalizedFile.startsWith(`${normalizedFolder}/`)) {
-                return `./${normalizedFile}`
+                if (lower.includes('sop')) return 0
+                if (lower.includes('alt')) return 1
+                if (lower.includes('ten')) return 2
+                if (lower.includes('bas')) return 3
+                return 4
             }
 
-            return `./${normalizedFolder}/${normalizedFile}`
+            return getVoiceOrder(a) - getVoiceOrder(b)
         })
-
-    songFiles = availableFiles.sort((a, b) => {
-        const getVoiceOrder = (file) => {
-            const lower = file.toLowerCase()
-            if (lower.includes('soprano')) return 0
-            if (lower.includes('alto')) return 1
-            if (lower.includes('tenor')) return 2
-            if (lower.includes('bass')) return 3
-
-            // fallback string matches
-            if (lower.includes('sop')) return 0
-            if (lower.includes('alt')) return 1
-            if (lower.includes('ten')) return 2
-            if (lower.includes('bas')) return 3
-            return 4
-        }
-
-        return getVoiceOrder(a) - getVoiceOrder(b)
-    })
-    // console.log(songFiles)
 }
-
 let heroVoice = ""
 let backingVolume = parseFloat(backingVolumeSlider.value)
 
@@ -634,6 +597,9 @@ async function loadAudioBuffers() {
 
         trackBuffers = decodedBuffers
         initializePanningSliders()
+
+        stopButton.textContent = '⬅️'
+
         setStatus(`Loaded ${songFiles.length} audio tracks for ${songFolder}.`)
 
     } catch (error) {
