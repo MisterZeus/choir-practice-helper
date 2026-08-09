@@ -10,13 +10,20 @@ const trackProgressSlider = document.getElementById('trackProgress')
 const trackVolumes = document.getElementById('trackVolumes')
 const panPresets = document.getElementById('panPresets')
 const songSelect = document.getElementById('songSelect')
+const fullMonoButton = document.getElementById('presetFullMono')
+const fullStereoButton = document.getElementById('presetChoirStereo')
+const leaderStereoButton = document.getElementById('presetLeaderStereo')
+const backingVolumeSlider = document.getElementById('backingVolume')
+
+let isLoadingAudio = false
+let songFolder = "Accentuate"
 
 let totalExpectedFiles = 4
+
 let muteButtons = []
 let trackVolumeSliders = []
 let presetButtons = []
-let isLoadingAudio = false
-let songFolder = "Accentuate"
+let panningSliders = []
 
 const choirVoices = ['soprano', 'alto', 'tenor', 'bass']
 
@@ -376,13 +383,6 @@ function initializePresetButtons() {
         throw new Error(`Expected ${expectedPresetButtonCount} preset buttons, but found ${presetButtons.length}`)
     }
 }
-
-const fullMonoButton = document.getElementById('presetFullMono')
-const fullStereoButton = document.getElementById('presetChoirStereo')
-const leaderStereoButton = document.getElementById('presetLeaderStereo')
-const backingVolumeSlider = document.getElementById('backingVolume')
-
-let panningSliders = []
 
 function createPanningControls() {
     if (!panningControls) {
