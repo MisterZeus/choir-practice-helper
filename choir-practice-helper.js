@@ -11,17 +11,43 @@ const progressLabel = document.getElementById('progressLabel')
 
 const trackProgressSlider = document.getElementById('trackProgress')
 
-let totalExpectedFiles = 4
-
 const trackVolumes = document.getElementById('trackVolumes')
 
 const panPresets = document.getElementById('panPresets')
 const songSelect = document.getElementById('songSelect')
 
+let totalExpectedFiles = 4
 let muteButtons = []
 let trackVolumeSliders = []
 let presetButtons = []
 let isLoadingAudio = false
+let songFolder = "Accentuate"
+
+function restoreStateFromUrl() {
+    const params = new URLSearchParams(window.location.search)
+
+    const restoredSong = params.get('s')
+    const normalizedSong = normalizeSongFolder(restoredSong)
+
+    if (normalizedSong) {
+        songFolder = normalizedSong
+    }
+}
+
+function updateUrlFromState() {
+    const url = new URL(window.location.href)
+    const params = url.searchParams
+
+    if (songFolder) {
+        params.set('s', String(songFolder))
+    } else {
+        params.delete('s')
+    }
+
+    url.search = params.toString() ? `?${params.toString()}` : ''
+    window.history.replaceState({}, '', url.toString())
+}
+
 
 function resetUiForNewSong() {
     stopSourceNodes()
@@ -140,6 +166,7 @@ async function populateSongSelect() {
 
         songFolder = selectedValue
         songSelect.value = selectedValue
+        updateUrlFromState()
     } catch (error) {
         console.error('Error populating song select', error)
         const fallbackOption = document.createElement('option')
@@ -151,6 +178,8 @@ async function populateSongSelect() {
     }
 }
 
+restoreStateFromUrl()
+
 if (songSelect) {
     songSelect.addEventListener('change', async () => {
         const selectedSong = normalizeSongFolder(songSelect.value)
@@ -159,6 +188,7 @@ if (songSelect) {
         }
 
         songFolder = selectedSong
+        updateUrlFromState()
 
         resetUiForNewSong()
 
@@ -365,8 +395,6 @@ const is_iOS_Safari = /constructor/i.test(window.HTMLElement)
     || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
     || /iPad|iPhone|iPod/.test(navigator.userAgent)
 
-
-let songFolder = "Accentuate"
 
 let audioFileExtension = ".opus"
 if (is_iOS_Safari) {
