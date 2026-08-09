@@ -1,18 +1,13 @@
 const safariWarning = document.getElementById('safariWarning')
-
 const playPauseButton = document.getElementById('playPause')
 const stopButton = document.getElementById('stop')
-
 const audioStatus = document.getElementById('audioStatus')
-
 const trackProgressContainer = document.getElementById('trackProgressContainer')
-
+const backingVolumeControl = document.getElementById('backingVolumeControl')
+const panningControls = document.getElementById('panningControls')
 const progressLabel = document.getElementById('progressLabel')
-
 const trackProgressSlider = document.getElementById('trackProgress')
-
 const trackVolumes = document.getElementById('trackVolumes')
-
 const panPresets = document.getElementById('panPresets')
 const songSelect = document.getElementById('songSelect')
 
@@ -22,6 +17,8 @@ let trackVolumeSliders = []
 let presetButtons = []
 let isLoadingAudio = false
 let songFolder = "Accentuate"
+
+const choirVoices = ['soprano', 'alto', 'tenor', 'bass']
 
 function restoreStateFromUrl() {
     const params = new URLSearchParams(window.location.search)
@@ -48,7 +45,6 @@ function updateUrlFromState() {
     window.history.replaceState({}, '', url.toString())
 }
 
-
 function resetUiForNewSong() {
     stopSourceNodes()
 
@@ -69,8 +65,6 @@ function resetUiForNewSong() {
 
     if (progressLabel) { progressLabel.textContent = '0:00 / 0:00' }
     if (trackProgressSlider) { trackProgressSlider.value = 0 }
-
-    //if (trackProgressContainer) { trackProgressContainer.style.display = 'none' }
 
     muteButtons = []
     mutedStates = []
@@ -127,6 +121,11 @@ async function readAudioPaths() {
 const audioPathsPromise = readAudioPaths()
 const songAudioBufferPrefetches = new Map()
 
+restoreStateFromUrl()
+
+const defaultStereoPan = [1, 0.35, -0.35, -1]
+const reverseStereoPan = [-1, -0.35, 0.35, 1]
+
 function getVoiceOrder(file) {
     const lower = file.toLowerCase()
     if (lower.includes('soprano')) return 0
@@ -153,8 +152,8 @@ function getSongFilesFromAudioPaths(audioPaths, targetFolder) {
         .sort((a, b) => getVoiceOrder(a) - getVoiceOrder(b))
 }
 
-async function fetchAudioBuffers(urls) {
-    const arrayBuffers = []
+async function fetchAudioBlobs(urls) {
+    const audioBlobs = []
 
     for (const url of urls) {
         const response = await fetch(url)
@@ -162,10 +161,10 @@ async function fetchAudioBuffers(urls) {
             throw new Error(`Could not fetch ${url}: ${response.status}`)
         }
 
-        arrayBuffers.push(await response.arrayBuffer())
+        audioBlobs.push(await response.blob())
     }
 
-    return arrayBuffers
+    return audioBlobs
 }
 
 async function prefetchSongAudioBuffers(folder) {
@@ -179,7 +178,7 @@ async function prefetchSongAudioBuffers(folder) {
         const prefetchPromise = (async () => {
             const audioPaths = await audioPathsPromise
             const songFilesForFolder = getSongFilesFromAudioPaths(audioPaths, targetFolder)
-            return fetchAudioBuffers(songFilesForFolder)
+            return fetchAudioBlobs(songFilesForFolder)
         })().catch((error) => {
             songAudioBufferPrefetches.delete(cacheKey)
             throw error
@@ -246,8 +245,6 @@ async function populateSongSelect() {
     }
 }
 
-restoreStateFromUrl()
-
 if (songSelect) {
     songSelect.addEventListener('change', async () => {
         const selectedSong = normalizeSongFolder(songSelect.value)
@@ -299,24 +296,23 @@ function createTrackControlRow(index, label, voiceName) {
     presetButton.className = 'presetButton'
     presetButton.textContent = '🦸'
     presetButton.addEventListener('click', () => {
-        const presetVoices = ['soprano', 'alto', 'tenor', 'bass']
         const presetPanValues = [
             [0, -1, -1, -1],
             [1, 0, -1, -1],
             [1, 1, 0, -1],
             [1, 1, 1, 0]
         ]
-        const volumes = [backingVolume, backingVolume, backingVolume, backingVolume]
-        volumes[index] = 1.0
+        const targetVoice = choirVoices[index]
+        const volumes = getHeroMixVolumes(targetVoice)
 
-        if (heroVoice === presetVoices[index]) {
+        if (heroVoice === targetVoice) {
             heroVoice = ''
-            updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
-            updatePanningValues(1, 0.35, -0.35, -1)
+            updateTrackVolumes(...getDefaultTrackVolumes())
+            updatePanningValues(...defaultStereoPan)
             return
         }
 
-        heroVoice = presetVoices[index]
+        heroVoice = targetVoice
         updateTrackVolumes(...volumes)
         updatePanningValues(...presetPanValues[index])
     })
@@ -384,12 +380,9 @@ function initializePresetButtons() {
 const fullMonoButton = document.getElementById('presetFullMono')
 const fullStereoButton = document.getElementById('presetChoirStereo')
 const leaderStereoButton = document.getElementById('presetLeaderStereo')
-
-const backingVolumeControl = document.getElementById('backingVolumeControl')
 const backingVolumeSlider = document.getElementById('backingVolume')
 
 let panningSliders = []
-const panningControls = document.getElementById('panningControls')
 
 function createPanningControls() {
     if (!panningControls) {
@@ -399,7 +392,6 @@ function createPanningControls() {
     panningControls.replaceChildren()
 
     const labels = ['S', 'A', 'T', 'B']
-    const defaultValues = [1, 0.35, -0.35, -1]
 
     return labels
         .slice(0, getExpectedTrackCount())
@@ -414,7 +406,7 @@ function createPanningControls() {
             slider.className = 'pan'
             slider.min = '-1'
             slider.max = '1'
-            slider.value = defaultValues[index]
+            slider.value = defaultStereoPan[index]
             slider.step = '0.1'
             slider.disabled = true
 
@@ -463,7 +455,6 @@ const is_iOS_Safari = /constructor/i.test(window.HTMLElement)
     || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
     || /iPad|iPhone|iPod/.test(navigator.userAgent)
 
-
 let audioFileExtension = ".opus"
 if (is_iOS_Safari) {
     audioFileExtension = ".aac"
@@ -508,10 +499,41 @@ function setStatus(message) {
     }
 }
 
+function formatAudioLoadError(error, folder) {
+    const baseMessage = `Unable to load audio for ${folder}.`
+
+    if (!error || !error.message) {
+        return baseMessage
+    }
+
+    return `${baseMessage} ${error.message}`
+}
+
 if (playPauseButton) {
     playPauseButton.addEventListener('click', () => {
         playPause()
     })
+}
+
+function resetHeroVoiceAndMix(panValues) {
+    heroVoice = ''
+    updateTrackVolumes(...getDefaultTrackVolumes())
+    updatePanningValues(...panValues)
+}
+
+function getDefaultTrackVolumes(trackCount = choirVoices.length) {
+    return new Array(trackCount).fill(1.0)
+}
+
+function getHeroMixVolumes(voice) {
+    const voiceIndex = choirVoices.indexOf(voice)
+    if (voiceIndex === -1) {
+        return null
+    }
+
+    const volumes = new Array(choirVoices.length).fill(backingVolume)
+    volumes[voiceIndex] = 1.0
+    return volumes
 }
 
 if (stopButton) {
@@ -594,9 +616,13 @@ async function setupAudio() {
             await loadAudioBuffers()
         }
 
+        if (trackBuffers.length === 0) {
+            throw new Error(`No decoded audio buffers loaded for ${songFolder}.`)
+        }
+
         const trackCount = getExpectedTrackCount()
         if (trackVolumeValues.length !== trackCount) {
-            trackVolumeValues = new Array(trackCount).fill(1)
+            trackVolumeValues = getDefaultTrackVolumes(trackCount)
             mutedStates = new Array(trackCount).fill(false)
         }
 
@@ -606,7 +632,8 @@ async function setupAudio() {
                 gainNode.gain.value = trackVolumeValues[index]
 
                 const panner = audioContext.createStereoPanner()
-                panner.pan.value = parseFloat(panningSliders[index].value)
+                const panSlider = panningSliders[index]
+                panner.pan.value = panSlider ? parseFloat(panSlider.value) : 0
 
                 gainNode.connect(panner).connect(audioContext.destination)
 
@@ -653,11 +680,13 @@ async function loadAudioBuffers() {
         panPresets.style.display = 'flex'
         trackProgressContainer.style.display = 'flex'
 
-        const prefetchedArrayBuffers = await prefetchSongAudioBuffers(songFolder)
+        const prefetchedAudioBlobs = await prefetchSongAudioBuffers(songFolder)
         const decodedBuffers = []
 
-        for (const arrayBuffer of prefetchedArrayBuffers) {
+        for (const audioBlob of prefetchedAudioBlobs) {
             try {
+                // Firefox may detach buffers after decodeAudioData; decode from a fresh buffer each time.
+                const arrayBuffer = await audioBlob.arrayBuffer()
                 const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer)
                 decodedBuffers.push(decodedBuffer)
 
@@ -681,7 +710,8 @@ async function loadAudioBuffers() {
 
     } catch (error) {
         console.error('Error during loadAudioBuffers', error)
-        setStatus(`Unable to load audio for ${songFolder}.`)
+        setStatus(formatAudioLoadError(error, songFolder))
+        throw error
     } finally {
         isLoadingAudio = false
         playPauseButton.disabled = false
@@ -870,29 +900,30 @@ function updateTrackVolumes(s, a, t, b) {
 function changeVolume(value, track) {
     try {
         const volume = parseFloat(value)
-        if (track === 'soprano') {
-            applyTrackVolumes([volume, trackVolumeValues[1], trackVolumeValues[2], trackVolumeValues[3]])
-        } else if (track === 'alto') {
-            applyTrackVolumes([trackVolumeValues[0], volume, trackVolumeValues[2], trackVolumeValues[3]])
-        } else if (track === 'tenor') {
-            applyTrackVolumes([trackVolumeValues[0], trackVolumeValues[1], volume, trackVolumeValues[3]])
-        } else if (track === 'bass') {
-            applyTrackVolumes([trackVolumeValues[0], trackVolumeValues[1], trackVolumeValues[2], volume])
+        const voiceIndex = choirVoices.indexOf(track)
+
+        if (voiceIndex !== -1) {
+            const updatedVolumes = [...trackVolumeValues]
+            updatedVolumes[voiceIndex] = volume
+            applyTrackVolumes(updatedVolumes)
         }
     } catch (error) {
         console.error('Error during changeVolume', error)
     }
 }
 
-function updatePanningValues(s, a, t, b) {
-    panningSliders[0].value = s
-    panningSliders[1].value = a
-    panningSliders[2].value = t
-    panningSliders[3].value = b
+function updatePanningValues(...panValues) {
+    panValues.forEach((panValue, index) => {
+        const slider = panningSliders[index]
+        if (slider) {
+            slider.value = panValue
+        }
+    })
 
     panners.forEach((panner, index) => {
-        if (panner) {
-            panner.pan.value = parseFloat(panningSliders[index].value)
+        const slider = panningSliders[index]
+        if (panner && slider) {
+            panner.pan.value = parseFloat(slider.value)
         }
     })
 }
@@ -956,36 +987,23 @@ panningSliders.forEach((slider, index) => {
 })
 
 fullMonoButton.addEventListener('click', () => {
-    heroVoice = ""
-    updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
-    updatePanningValues(0, 0, 0, 0)
+    resetHeroVoiceAndMix([0, 0, 0, 0])
 })
 
-let middleVoicesPan = 0.35
-
 fullStereoButton.addEventListener('click', () => {
-    heroVoice = ""
-    updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
-    updatePanningValues(1, middleVoicesPan, -middleVoicesPan, -1)
+    resetHeroVoiceAndMix(defaultStereoPan)
 })
 
 leaderStereoButton.addEventListener('click', () => {
-    heroVoice = ""
-    updateTrackVolumes(1.0, 1.0, 1.0, 1.0)
-    updatePanningValues(-1, -middleVoicesPan, middleVoicesPan, 1)
+    resetHeroVoiceAndMix(reverseStereoPan)
 })
 
 backingVolumeSlider.addEventListener('input', () => {
     backingVolume = parseFloat(backingVolumeSlider.value)
 
-    if (heroVoice === "soprano") {
-        updateTrackVolumes(1.0, backingVolume, backingVolume, backingVolume)
-    } else if (heroVoice === "alto") {
-        updateTrackVolumes(backingVolume, 1.0, backingVolume, backingVolume)
-    } else if (heroVoice === "tenor") {
-        updateTrackVolumes(backingVolume, backingVolume, 1.0, backingVolume)
-    } else if (heroVoice === "bass") {
-        updateTrackVolumes(backingVolume, backingVolume, backingVolume, 1.0)
+    const volumes = getHeroMixVolumes(heroVoice)
+    if (volumes) {
+        updateTrackVolumes(...volumes)
     }
 })
 
