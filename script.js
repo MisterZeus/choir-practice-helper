@@ -462,6 +462,18 @@ function setStatus(message) {
     }
 }
 
+if (playPauseButton) {
+    playPauseButton.addEventListener('click', () => {
+        playPause()
+    })
+}
+
+if (stopButton) {
+    stopButton.addEventListener('click', () => {
+        stop()
+    })
+}
+
 async function playPause() {
     try {
         if (isLoadingAudio) {

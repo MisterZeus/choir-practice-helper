@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width">
         <title>Choir Practice Helper</title>
         <link rel="stylesheet" href="style.css">
+        <script defer src="script.js"></script>
     </head>
 
     <body>
@@ -28,10 +29,8 @@
             <p id="audioStatus" aria-live="polite" style="color: #666;"></p>
 
             <div>
-                <button type="button" id="playPause"
-                    onclick="playPause()">▶️</button>
-                <button type="button" id="stop" onclick="stop()"
-                    disabled>⬅️</button>
+                <button type="button" id="playPause">▶️</button>
+                <button type="button" id="stop" disabled>⬅️</button>
             </div>
             <div id="trackProgressContainer" style="display:none">
                 <input id="trackProgress" title="Track Progress" type="range"
@@ -59,7 +58,6 @@
                     Source Code</a>
             </p>
         </aside>
-        <script src="choir-practice-helper.js"></script>
     </body>
 
 </html>
