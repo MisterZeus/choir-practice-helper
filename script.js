@@ -124,6 +124,73 @@ async function readAudioPaths() {
         .filter((line) => line && !line.startsWith('#'))
 }
 
+const audioPathsPromise = readAudioPaths()
+const songAudioBufferPrefetches = new Map()
+
+function getVoiceOrder(file) {
+    const lower = file.toLowerCase()
+    if (lower.includes('soprano')) return 0
+    if (lower.includes('alto')) return 1
+    if (lower.includes('tenor')) return 2
+    if (lower.includes('bass')) return 3
+
+    if (lower.includes('sop')) return 0
+    if (lower.includes('alt')) return 1
+    if (lower.includes('ten')) return 2
+    if (lower.includes('bas')) return 3
+    return 4
+}
+
+function getSongFilesFromAudioPaths(audioPaths, targetFolder) {
+    return audioPaths
+        .map((path) => normalizePathValue(path).replace(/^songs\//, ''))
+        .filter((path) => {
+            const [folderName] = path.split('/')
+            return folderName === targetFolder
+        })
+        .filter((path) => path.toLowerCase().endsWith(audioFileExtension.toLowerCase()))
+        .map((path) => `./songs/${path}`)
+        .sort((a, b) => getVoiceOrder(a) - getVoiceOrder(b))
+}
+
+async function fetchAudioBuffers(urls) {
+    const arrayBuffers = []
+
+    for (const url of urls) {
+        const response = await fetch(url)
+        if (!response.ok) {
+            throw new Error(`Could not fetch ${url}: ${response.status}`)
+        }
+
+        arrayBuffers.push(await response.arrayBuffer())
+    }
+
+    return arrayBuffers
+}
+
+async function prefetchSongAudioBuffers(folder) {
+    const targetFolder = normalizeSongFolder(folder)
+    if (!targetFolder) {
+        return []
+    }
+
+    const cacheKey = `${targetFolder}|${audioFileExtension}`
+    if (!songAudioBufferPrefetches.has(cacheKey)) {
+        const prefetchPromise = (async () => {
+            const audioPaths = await audioPathsPromise
+            const songFilesForFolder = getSongFilesFromAudioPaths(audioPaths, targetFolder)
+            return fetchAudioBuffers(songFilesForFolder)
+        })().catch((error) => {
+            songAudioBufferPrefetches.delete(cacheKey)
+            throw error
+        })
+
+        songAudioBufferPrefetches.set(cacheKey, prefetchPromise)
+    }
+
+    return songAudioBufferPrefetches.get(cacheKey)
+}
+
 async function populateSongSelect() {
     if (!songSelect) {
         return
@@ -138,7 +205,7 @@ async function populateSongSelect() {
     songSelect.appendChild(placeholderOption)
 
     try {
-        const audioPaths = await readAudioPaths()
+        const audioPaths = await audioPathsPromise
         const songFolders = [...new Set(audioPaths
             .map((path) => normalizeSongFolder(path))
             .filter(Boolean))].sort()
@@ -167,6 +234,7 @@ async function populateSongSelect() {
         songFolder = selectedValue
         songSelect.value = selectedValue
         updateUrlFromState()
+        void prefetchSongAudioBuffers(songFolder)
     } catch (error) {
         console.error('Error populating song select', error)
         const fallbackOption = document.createElement('option')
@@ -401,6 +469,8 @@ if (is_iOS_Safari) {
     audioFileExtension = ".aac"
 }
 
+void prefetchSongAudioBuffers(songFolder)
+
 let songFiles = []
 
 async function refreshSongFiles() {
@@ -410,33 +480,9 @@ async function refreshSongFiles() {
     }
 
     const targetFolder = normalizeSongFolder(songFolder)
-    const audioPaths = await readAudioPaths()
+    const audioPaths = await audioPathsPromise
 
-    songFiles = audioPaths
-        .map((path) => normalizePathValue(path).replace(/^songs\//, ''))
-        .filter((path) => {
-            const [folderName] = path.split('/')
-            return folderName === targetFolder
-        })
-        .filter((path) => path.toLowerCase().endsWith(audioFileExtension.toLowerCase()))
-        .map((path) => `./songs/${path}`)
-        .sort((a, b) => {
-            const getVoiceOrder = (file) => {
-                const lower = file.toLowerCase()
-                if (lower.includes('soprano')) return 0
-                if (lower.includes('alto')) return 1
-                if (lower.includes('tenor')) return 2
-                if (lower.includes('bass')) return 3
-
-                if (lower.includes('sop')) return 0
-                if (lower.includes('alt')) return 1
-                if (lower.includes('ten')) return 2
-                if (lower.includes('bas')) return 3
-                return 4
-            }
-
-            return getVoiceOrder(a) - getVoiceOrder(b)
-        })
+    songFiles = getSongFilesFromAudioPaths(audioPaths, targetFolder)
 }
 
 let heroVoice = ""
@@ -607,18 +653,11 @@ async function loadAudioBuffers() {
         panPresets.style.display = 'flex'
         trackProgressContainer.style.display = 'flex'
 
-        const urls = songFiles
+        const prefetchedArrayBuffers = await prefetchSongAudioBuffers(songFolder)
         const decodedBuffers = []
 
-        for (const url of urls) {
+        for (const arrayBuffer of prefetchedArrayBuffers) {
             try {
-                const response = await fetch(url)
-                if (!response.ok) {
-                    throw new Error(`Could not fetch ${url}: ${response.status}`)
-                }
-
-                const arrayBuffer = await response.arrayBuffer()
-
                 const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer)
                 decodedBuffers.push(decodedBuffer)
 
@@ -627,6 +666,10 @@ async function loadAudioBuffers() {
                 console.error('Failed to decode audio', error)
                 throw error
             }
+        }
+
+        if (decodedBuffers.length !== songFiles.length) {
+            throw new Error(`Expected ${songFiles.length} decoded buffers, but found ${decodedBuffers.length}`)
         }
 
         trackBuffers = decodedBuffers
