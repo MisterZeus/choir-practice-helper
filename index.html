@@ -10,10 +10,11 @@
     </head>
 
     <body>
+        <a href="#mainContent" class="skip-link">Skip to main content</a>
         <header>
             <h1>Choir Practice Helper</h1>
         </header>
-        <main>
+        <main id="mainContent">
             <p>A simple voice mixer to practice different choir parts.</p>
             <p>Use the buttons to play/pause/stop all parts,
                 <br>or change volume and pan (left/right) presets.
@@ -29,20 +30,26 @@
             <p id="audioStatus" aria-live="polite" style="color: #666;"></p>
 
             <div>
-                <button type="button" id="playPause">▶️</button>
-                <button type="button" id="stop" disabled>⬅️</button>
+                <button type="button" id="playPause" aria-label="Play audio">
+                    <span aria-hidden="true">▶️</span>
+                </button>
+                <button type="button" id="stop" disabled
+                    aria-label="Stop playback">
+                    <span aria-hidden="true">⬅️</span>
+                </button>
             </div>
             <div id="trackProgressContainer" style="display:none">
                 <input id="trackProgress" title="Track Progress" type="range"
-                    min="0" max="100" value="0"
+                    aria-label="Track progress" min="0" max="100" value="0"
                     onchange="seekTrack(this.value)">
-                <label id="progressLabel">0:00 / 0:00</label>
+                <span id="progressLabel" aria-live="polite">0:00 / 0:00</span>
             </div>
             <div id="trackVolumes" style="display:block"></div>
             <div id="backingVolumeControl" style="display:none">
-                <label>Backing Volume: </label>
-                <input title="Backing Volume" id="backingVolume" type="range"
-                    class="volume" min="0" max="1" value="0.20" step="0.05"
+                <span>Backing Volume: </span>
+                <input title="Backing Volume" aria-label="Backing volume"
+                    id="backingVolume" type="range" class="volume" min="0"
+                    max="1" value="0.20" step="0.05"
                     oninput="changeVolume(this.value, 'other')">
             </div>
             <div id="panningControls" style="display:block"></div>

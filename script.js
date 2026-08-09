@@ -61,10 +61,15 @@ function resetUiForNewSong() {
     gainNodes = []
     panners = []
 
-    if (playPauseButton) { playPauseButton.textContent = '▶️' }
+    if (playPauseButton) {
+        playPauseButton.textContent = '▶️'
+        playPauseButton.setAttribute('aria-label', 'Play audio')
+        playPauseButton.setAttribute('aria-pressed', 'false')
+    }
     if (stopButton) {
         stopButton.disabled = true
         stopButton.textContent = '⬅️'
+        stopButton.setAttribute('aria-label', 'Stop playback')
     }
 
     if (audioStatus) { audioStatus.textContent = '' }
@@ -282,12 +287,14 @@ function createTrackControlRow(index, label, voiceName) {
     const muteButton = document.createElement('button')
     muteButton.type = 'button'
     muteButton.className = 'muteButton'
+    muteButton.setAttribute('aria-label', `Mute ${voiceName}`)
     muteButton.textContent = '🔊'
     muteButton.addEventListener('click', () => muteTrack(index))
 
     const volumeSlider = document.createElement('input')
     volumeSlider.type = 'range'
     volumeSlider.title = `${voiceName} Volume`
+    volumeSlider.setAttribute('aria-label', `${voiceName} volume`)
     volumeSlider.className = 'trackVolume'
     volumeSlider.min = '0'
     volumeSlider.max = '1'
@@ -301,6 +308,7 @@ function createTrackControlRow(index, label, voiceName) {
     const presetButton = document.createElement('button')
     presetButton.type = 'button'
     presetButton.className = 'presetButton'
+    presetButton.setAttribute('aria-label', `Set ${voiceName} as hero voice`)
     presetButton.textContent = '🦸'
     presetButton.addEventListener('click', () => {
         const presetPanValues = [
@@ -586,6 +594,8 @@ function stop() {
         isPaused = true
         clearInterval(progressTimer)
         playPauseButton.textContent = '▶️'
+        playPauseButton.setAttribute('aria-label', 'Play audio')
+        playPauseButton.setAttribute('aria-pressed', 'false')
         stopButton.disabled = true
         stopButton.textContent = '⬅️'
         updateTrackProgress()
@@ -750,6 +760,8 @@ function startPlayback() {
         isPaused = false
         isSeeking = false
         playPauseButton.textContent = '⏸️'
+        playPauseButton.setAttribute('aria-label', 'Pause audio')
+        playPauseButton.setAttribute('aria-pressed', 'true')
         stopButton.disabled = false
         clearInterval(progressTimer)
         progressTimer = setInterval(updateTrackProgress, 250)
@@ -770,6 +782,8 @@ function pausePlayback() {
         isPaused = true
         clearInterval(progressTimer)
         playPauseButton.textContent = '▶️'
+        playPauseButton.setAttribute('aria-label', 'Play audio')
+        playPauseButton.setAttribute('aria-pressed', 'false')
     } catch (error) {
         console.error('Error during pause', error)
     }

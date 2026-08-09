@@ -6,6 +6,21 @@ body {
     margin: 0 auto;
 }
 
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: #000;
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    z-index: 1000;
+}
+
+.skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+}
+
 a,
 header,
 p {
@@ -37,6 +52,14 @@ button[class="muteButton"] {
 
 button:hover {
     background-color: #45b300;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
 }
 
 label,
