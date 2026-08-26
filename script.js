@@ -414,8 +414,8 @@ function createPanningControls() {
             slider.className = 'pan'
             slider.min = '-1'
             slider.max = '1'
-            slider.value = defaultStereoPan[index]
             slider.step = '0.1'
+            slider.value = defaultStereoPan[index]
             slider.disabled = true
 
             const rightLabel = document.createElement('label')
