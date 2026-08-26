@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 rem Install ffmpeg if you do not have it!
 rem winget install ffmpeg
 
-for /r %%F in (*.mp3 *.wav *.flac *.m4a *.aac *.ogg *.wma *.aiff *.alac) do (
+for /r %%F in (*.mp3 *.wav *.flac *.m4a *.ogg *.wma *.aiff *.alac) do (
     set "input=%%~fF"
     set "output=%%~dpnF24K.opus"
 
