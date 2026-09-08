@@ -14,6 +14,14 @@ Be My Baby\be-my-baby-alto24K.aac
 Be My Baby\be-my-baby-bass24K.aac
 Be My Baby\be-my-baby-sop24K.aac
 Be My Baby\be-my-baby-tenor24K.aac
+Breaking Up Is Hard To Do\bass-breaking-up-924K.opus
+Breaking Up Is Hard To Do\breaking-up-alto24K.opus
+Breaking Up Is Hard To Do\breaking-up-sop24K.opus
+Breaking Up Is Hard To Do\breaking-up-ten24K.opus
+Breaking Up Is Hard To Do\bass-breaking-up-9.aac
+Breaking Up Is Hard To Do\breaking-up-alto.aac
+Breaking Up Is Hard To Do\breaking-up-sop.aac
+Breaking Up Is Hard To Do\breaking-up-ten.aac
 Choo Choo Ch-boogie\choo-choo-chboogie-alto24K.opus
 Choo Choo Ch-boogie\choo-choo-chboogie-bass24K.opus
 Choo Choo Ch-boogie\choo-choo-chboogie-sop24K.opus
@@ -38,3 +46,11 @@ Somewhere Over The Downland\alto-somewhere-over-the-downland.aac
 Somewhere Over The Downland\bass-somewhere-over-the-downland.aac
 Somewhere Over The Downland\sop-somewhere-over-the-downland.aac
 Somewhere Over The Downland\ten-somewhere-over-the-downland.aac
+Sway With Me\sway-alto24K.opus
+Sway With Me\sway-bass24K.opus
+Sway With Me\sway-sop24K.opus
+Sway With Me\sway-ten24K.opus
+Sway With Me\sway-alto.aac
+Sway With Me\sway-bass.aac
+Sway With Me\sway-sop.aac
+Sway With Me\sway-ten.aac
