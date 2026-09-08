@@ -132,6 +132,7 @@ async function readAudioPaths() {
 
 const audioPathsPromise = readAudioPaths()
 const songAudioBufferPrefetches = new Map()
+const decodedAudioBufferCache = new Map()
 
 restoreStateFromUrl()
 
@@ -202,6 +203,65 @@ async function prefetchSongAudioBuffers(folder) {
     return songAudioBufferPrefetches.get(cacheKey)
 }
 
+function getSharedAudioContext() {
+    if (!window.AudioContext && !window.webkitAudioContext) {
+        throw new Error('Web Audio API is not supported in this browser.')
+    }
+
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    }
+
+    return audioContext
+}
+
+let decodingAudioContext
+
+// OfflineAudioContext can decode without a user gesture, unlike a real AudioContext.
+function getDecodingAudioContext() {
+    const OfflineAudioContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext
+    if (!OfflineAudioContextClass) {
+        throw new Error('Web Audio API is not supported in this browser.')
+    }
+
+    if (!decodingAudioContext) {
+        decodingAudioContext = new OfflineAudioContextClass(1, 1, 44100)
+    }
+
+    return decodingAudioContext
+}
+
+// Decodes buffers in the background so playback can start instantly once the user presses play.
+async function preloadSongAudioBuffers(folder) {
+    const targetFolder = normalizeSongFolder(folder)
+    if (!targetFolder) {
+        return []
+    }
+
+    const cacheKey = `${targetFolder}|${audioFileExtension}`
+    if (!decodedAudioBufferCache.has(cacheKey)) {
+        const decodePromise = (async () => {
+            const audioBlobs = await prefetchSongAudioBuffers(targetFolder)
+            const context = getDecodingAudioContext()
+
+            const decodedBuffers = []
+            for (const audioBlob of audioBlobs) {
+                // Firefox may detach buffers after decodeAudioData; decode from a fresh buffer each time.
+                const arrayBuffer = await audioBlob.arrayBuffer()
+                decodedBuffers.push(await context.decodeAudioData(arrayBuffer))
+            }
+            return decodedBuffers
+        })().catch((error) => {
+            decodedAudioBufferCache.delete(cacheKey)
+            throw error
+        })
+
+        decodedAudioBufferCache.set(cacheKey, decodePromise)
+    }
+
+    return decodedAudioBufferCache.get(cacheKey)
+}
+
 async function populateSongSelect() {
     if (!songSelect) {
         return
@@ -245,7 +305,7 @@ async function populateSongSelect() {
         songFolder = selectedValue
         songSelect.value = selectedValue
         updateUrlFromState()
-        void prefetchSongAudioBuffers(songFolder)
+        void preloadSongAudioBuffers(songFolder)
     } catch (error) {
         console.error('Error populating song select', error)
         const fallbackOption = document.createElement('option')
@@ -266,6 +326,7 @@ if (songSelect) {
 
         songFolder = selectedSong
         updateUrlFromState()
+        void preloadSongAudioBuffers(songFolder)
 
         resetUiForNewSong()
 
@@ -468,7 +529,7 @@ if (is_iOS_Safari) {
     audioFileExtension = ".aac"
 }
 
-void prefetchSongAudioBuffers(songFolder)
+void preloadSongAudioBuffers(songFolder)
 
 let songFiles = []
 
@@ -610,13 +671,7 @@ function stop() {
 
 async function setupAudio() {
     try {
-        if (!window.AudioContext && !window.webkitAudioContext) {
-            throw new Error('Web Audio API is not supported in this browser.')
-        }
-
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)()
-        }
+        getSharedAudioContext()
 
         if (audioContext.state === 'suspended') {
             await audioContext.resume()
@@ -690,22 +745,7 @@ async function loadAudioBuffers() {
         panPresets.style.display = 'flex'
         trackProgressContainer.style.display = 'flex'
 
-        const prefetchedAudioBlobs = await prefetchSongAudioBuffers(songFolder)
-        const decodedBuffers = []
-
-        for (const audioBlob of prefetchedAudioBlobs) {
-            try {
-                // Firefox may detach buffers after decodeAudioData; decode from a fresh buffer each time.
-                const arrayBuffer = await audioBlob.arrayBuffer()
-                const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer)
-                decodedBuffers.push(decodedBuffer)
-
-                stopButton.textContent += '.'
-            } catch (error) {
-                console.error('Failed to decode audio', error)
-                throw error
-            }
-        }
+        const decodedBuffers = await preloadSongAudioBuffers(songFolder)
 
         if (decodedBuffers.length !== songFiles.length) {
             throw new Error(`Expected ${songFiles.length} decoded buffers, but found ${decodedBuffers.length}`)
