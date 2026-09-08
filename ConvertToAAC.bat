@@ -3,7 +3,15 @@
 rem Install ffmpeg if you do not have it!
 rem winget install ffmpeg
 
-for /f "tokens=*" %%a in ('dir /b /s *.m4a') do (
-    echo Converting "%%a" to "%%~dpna.aac"
-    ffmpeg -i "%%a" -c:a aac -q:a 0.5 -map_metadata 0 -ac 1 "%%~dpna.aac" -y
+
+for /r %%F in (*.mp3 *.wav *.flac *.m4a *.ogg *.wma *.aiff *.alac) do (
+    set "input=%%~fF"
+    set "output=%%~dpnF.aac"
+
+    if /I "%%~xF"==".aac" (
+        echo Skipping already-encoded AAC file: "%%~fF"
+    ) else (
+        echo Converting "%%F" to "%%~dpnF.aac"
+        ffmpeg -i "%%F" -c:a aac -q:a 0.5 -map_metadata 0 -ac 1 "%%~dpnF.aac" -y
+    )
 )
