@@ -1,0 +1,1 @@
+(async()=>{for(const audio of document.querySelectorAll('audio'))if(audio.src){const blob=await(await fetch(audio.src)).blob(),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=decodeURIComponent(new URL(audio.src).pathname.split('/').pop());link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}})()

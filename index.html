@@ -18,11 +18,14 @@
             <p>A simple voice mixer to practice different choir parts.</p>
             <div>
                 <ul>
-                    <li>▶️ play/pause</li>
+                    <li>▶️ play, ⏸️ pause</li>
                     <li>⏹️ stop</li>
-                    <li>🔊 mute/unmute</li>
-                    <li>🦸 hero this voice (louder than others)</li>
+                    <li>🔊 mute, 🔇 unmute</li>
+                    <li>🦸 hero this voice (make others quieter)</li>
                 </ul>
+            </div>
+            <div>
+                You can use the sliders to set your own volumes too.
             </div>
             <div>
                 <label for="songSelect">Pick a Song: </label>
@@ -50,7 +53,7 @@
             </div>
             <div id="trackVolumes" style="display:block"></div>
             <div id="backingVolumeControl" style="display:none">
-                <span>Backing Volume: </span>
+                <span>Backing Volumes: </span>
                 <input title="Backing Volume" aria-label="Backing volume"
                     id="backingVolume" type="range" class="volume" min="0"
                     max="1" value="0.20" step="0.05"
