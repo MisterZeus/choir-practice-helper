@@ -18,14 +18,12 @@ const backingVolumeSlider = document.getElementById('backingVolume')
 let isLoadingAudio = false
 let songFolder = "Accentuate"
 
-let totalExpectedFiles = 4
-
 let muteButtons = []
 let trackVolumeSliders = []
 let presetButtons = []
 let panningSliders = []
 
-const choirVoices = ['soprano', 'alto', 'tenor', 'bass']
+const choirVoices = ['soprano', 'alto', 'tenor', 'bass', 'top', 'middle', 'bottom']
 
 function restoreStateFromUrl() {
     const params = new URLSearchParams(window.location.search)
@@ -135,8 +133,15 @@ const songAudioBufferPrefetches = new Map()
 
 restoreStateFromUrl()
 
-const defaultStereoPan = [1, 0.35, -0.35, -1]
-const reverseStereoPan = [-1, -0.35, 0.35, 1]
+function getOptimalVoicePanValues(voiceCount, reverse = false) {
+    if (voiceCount <= 1) {
+        return [0]
+    }
+
+    const gap = 2 / (voiceCount - 1)
+    const values = Array.from({ length: voiceCount }, (_, index) => -1 + index * gap)
+    return reverse ? values.reverse() : values
+}
 
 function getVoiceOrder(file) {
     const lower = file.toLowerCase()
@@ -144,11 +149,16 @@ function getVoiceOrder(file) {
     if (lower.includes('alto')) return 1
     if (lower.includes('tenor')) return 2
     if (lower.includes('bass')) return 3
+    if (lower.includes('top')) return 4
+    if (lower.includes('middle')) return 5
+    if (lower.includes('bottom')) return 6
 
     if (lower.includes('sop')) return 0
     if (lower.includes('alt')) return 1
     if (lower.includes('ten')) return 2
     if (lower.includes('bas')) return 3
+    if (lower.includes('mid')) return 5
+    if (lower.includes('bot')) return 6
     return 4
 }
 
@@ -274,7 +284,7 @@ if (songSelect) {
 }
 
 function getExpectedTrackCount() {
-    return trackBuffers.length || songFiles.length || totalExpectedFiles
+    return trackBuffers.length || songFiles.length
 }
 
 function createTrackControlRow(index, label, voiceName) {
@@ -311,25 +321,22 @@ function createTrackControlRow(index, label, voiceName) {
     presetButton.setAttribute('aria-label', `Set ${voiceName} as hero voice`)
     presetButton.textContent = '🦸'
     presetButton.addEventListener('click', () => {
-        const presetPanValues = [
-            [0, -1, -1, -1],
-            [1, 0, -1, -1],
-            [1, 1, 0, -1],
-            [1, 1, 1, 0]
-        ]
+        const presetPanValues = choirVoices.map((_, voiceIndex) => voiceIndex === index
+            ? 0
+            : voiceIndex < index ? 1 : -1)
         const targetVoice = choirVoices[index]
         const volumes = getHeroMixVolumes(targetVoice)
 
         if (heroVoice === targetVoice) {
             heroVoice = ''
             updateTrackVolumes(...getDefaultTrackVolumes())
-            updatePanningValues(...defaultStereoPan)
+            updatePanningValues(...getOptimalVoicePanValues(getExpectedTrackCount()))
             return
         }
 
         heroVoice = targetVoice
         updateTrackVolumes(...volumes)
-        updatePanningValues(...presetPanValues[index])
+        updatePanningValues(...presetPanValues)
     })
 
     row.append(labelElement, muteButton, volumeSlider, presetButton)
@@ -343,8 +350,8 @@ function buildTrackControlRows() {
 
     trackVolumes.replaceChildren()
 
-    const voiceNames = ['soprano', 'alto', 'tenor', 'bass']
-    const labels = ['S', 'A', 'T', 'B']
+    const voiceNames = choirVoices
+    const labels = ['S', 'A', 'T', 'B', 'Top', 'Mid', 'Bot']
 
     const rows = voiceNames
         .slice(0, getExpectedTrackCount())
@@ -399,10 +406,9 @@ function createPanningControls() {
 
     panningControls.replaceChildren()
 
-    const labels = ['S', 'A', 'T', 'B']
+    const labels = ['S', 'A', 'T', 'B', 'Top', 'Mid', 'Bot']
 
-    return labels
-        .slice(0, getExpectedTrackCount())
+    return Array.from({ length: getExpectedTrackCount() }, (_, index) => labels[index] || String(index + 1))
         .map((label, index) => {
             const row = document.createElement('div')
             const labelElement = document.createElement('label')
@@ -414,8 +420,8 @@ function createPanningControls() {
             slider.className = 'pan'
             slider.min = '-1'
             slider.max = '1'
-            slider.step = '0.1'
-            slider.value = defaultStereoPan[index]
+            slider.step = '0.01'
+            slider.value = getOptimalVoicePanValues(getExpectedTrackCount())[index]
             slider.disabled = true
 
             const rightLabel = document.createElement('label')
@@ -672,11 +678,6 @@ async function loadAudioBuffers() {
             throw new Error(`No audio files found for ${songFolder}.`)
         }
 
-        if (songFiles.length !== totalExpectedFiles) {
-            setStatus(`Found ${songFiles.length} audio files for ${songFolder}, but expected ${totalExpectedFiles}.`)
-            throw new Error(`Expected ${totalExpectedFiles} audio files, but found ${songFiles.length}`)
-        }
-
         buildTrackControlRows()
         initializeMuteButtons()
         initializeTrackVolumeSliders()
@@ -898,14 +899,9 @@ function applyTrackVolumes(values) {
     })
 }
 
-function updateTrackVolumes(s, a, t, b) {
+function updateTrackVolumes(...values) {
     try {
-        applyTrackVolumes([
-            parseFloat(s),
-            parseFloat(a),
-            parseFloat(t),
-            parseFloat(b)
-        ])
+        applyTrackVolumes(values.map((value) => parseFloat(value)))
     } catch (error) {
         console.error('Error during updateTrackVolumes', error)
     }
@@ -1001,15 +997,15 @@ panningSliders.forEach((slider, index) => {
 })
 
 fullMonoButton.addEventListener('click', () => {
-    resetHeroVoiceAndMix([0, 0, 0, 0])
+    resetHeroVoiceAndMix([0, 0, 0, 0, 0, 0, 0])
 })
 
 fullStereoButton.addEventListener('click', () => {
-    resetHeroVoiceAndMix(defaultStereoPan)
+    resetHeroVoiceAndMix(getOptimalVoicePanValues(getExpectedTrackCount()))
 })
 
 leaderStereoButton.addEventListener('click', () => {
-    resetHeroVoiceAndMix(reverseStereoPan)
+    resetHeroVoiceAndMix(getOptimalVoicePanValues(getExpectedTrackCount(), true))
 })
 
 backingVolumeSlider.addEventListener('input', () => {
