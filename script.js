@@ -905,6 +905,16 @@ function updateTrackProgress() {
     }
 }
 
+function getVolumeSpeakerEmoji(value) {
+    if (value < 0.2) {
+        return '🔈'
+    }
+    if (value < 0.7) {
+        return '🔉'
+    }
+    return '🔊'
+}
+
 function applyTrackVolumes(values) {
     values.forEach((value, index) => {
         trackVolumeValues[index] = value
@@ -918,22 +928,8 @@ function applyTrackVolumes(values) {
             trackVolumeSliders[index].value = value
         }
 
-        let lowVolumeThreshold = 0.1
-        let mediumVolumeThreshold = 0.7
-        let hysterisis = 0.3
-
         if (!mutedStates[index] && muteButtons[index]) {
-            if (value < lowVolumeThreshold) {
-                muteButtons[index].textContent = '🔈'
-                lowVolumeThreshold += hysterisis
-            } else if (value >= lowVolumeThreshold && value < mediumVolumeThreshold) {
-                muteButtons[index].textContent = '🔉'
-                lowVolumeThreshold -= hysterisis
-                mediumVolumeThreshold += hysterisis
-            } else {
-                muteButtons[index].textContent = '🔊'
-                mediumVolumeThreshold -= hysterisis
-            };
+            muteButtons[index].textContent = getVolumeSpeakerEmoji(value)
         }
     })
 }
@@ -1008,7 +1004,7 @@ function muteTrack(index) {
     mutedStates[index] = !mutedStates[index]
     const button = muteButtons[index]
     if (button) {
-        button.textContent = mutedStates[index] ? '🔇' : '🔊'
+        button.textContent = mutedStates[index] ? '🔇' : getVolumeSpeakerEmoji(trackVolumeValues[index])
     }
     if (trackVolumeSliders[index]) {
         trackVolumeSliders[index].disabled = mutedStates[index]
