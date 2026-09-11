@@ -922,12 +922,11 @@ function applyTrackVolumes(values) {
         let mediumVolumeThreshold = 0.7
         let hysterisis = 0.3
 
-        if (!mutedStates[index]) {
-            if (trackVolumeSliders[index].value < lowVolumeThreshold) {
+        if (!mutedStates[index] && muteButtons[index]) {
+            if (value < lowVolumeThreshold) {
                 muteButtons[index].textContent = '🔈'
                 lowVolumeThreshold += hysterisis
-            } else if (trackVolumeSliders[index].value >= lowVolumeThreshold
-                && trackVolumeSliders[index].value < mediumVolumeThreshold) {
+            } else if (value >= lowVolumeThreshold && value < mediumVolumeThreshold) {
                 muteButtons[index].textContent = '🔉'
                 lowVolumeThreshold -= hysterisis
                 mediumVolumeThreshold += hysterisis
