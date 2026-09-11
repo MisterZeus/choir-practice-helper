@@ -22,6 +22,14 @@ Breaking Up Is Hard To Do\bass-breaking-up-9.aac
 Breaking Up Is Hard To Do\breaking-up-alto.aac
 Breaking Up Is Hard To Do\breaking-up-sop.aac
 Breaking Up Is Hard To Do\breaking-up-ten.aac
+Carol of the Drum\little-drummer-alto24K.opus
+Carol of the Drum\little-drummer-bass24K.opus
+Carol of the Drum\little-drummer-sop24K.opus
+Carol of the Drum\little-drummer-tenor24K.opus
+Carol of the Drum\little-drummer-alto.aac
+Carol of the Drum\little-drummer-bass.aac
+Carol of the Drum\little-drummer-sop.aac
+Carol of the Drum\little-drummer-tenor.aac
 Choo Choo Ch-boogie\choo-choo-chboogie-alto24K.opus
 Choo Choo Ch-boogie\choo-choo-chboogie-bass24K.opus
 Choo Choo Ch-boogie\choo-choo-chboogie-sop24K.opus
@@ -44,6 +52,46 @@ Do You Love Me\mid-do-you-love-me.aac
 Do You Love Me\sop-do-you-love-me.aac
 Do You Love Me\tenor-do-you-love-me.aac
 Do You Love Me\top-do-you-love-me.aac
+Fairytale of New York\fairytale-alto24K.opus
+Fairytale of New York\fairytale-bass24K.opus
+Fairytale of New York\fairytale-soprano24K.opus
+Fairytale of New York\fairytale-tenor24K.opus
+Fairytale of New York\fairytale-alto.aac
+Fairytale of New York\fairytale-bass.aac
+Fairytale of New York\fairytale-soprano.aac
+Fairytale of New York\fairytale-tenor.aac
+Let It Snow\alto-let-it-snow-124K.opus
+Let It Snow\bass-let-it-snow24K.opus
+Let It Snow\sop-let-it-snow24K.opus
+Let It Snow\tenor-let-it-snow-wav24K.opus
+Let It Snow\alto-let-it-snow-1.aac
+Let It Snow\bass-let-it-snow.aac
+Let It Snow\sop-let-it-snow.aac
+Let It Snow\tenor-let-it-snow-wav.aac
+Mamacita Donde Esta Santa Claus\donde-esta-alto24K.opus
+Mamacita Donde Esta Santa Claus\donde-esta-bass24K.opus
+Mamacita Donde Esta Santa Claus\donde-esta-sop24K.opus
+Mamacita Donde Esta Santa Claus\donde-esta-ten24K.opus
+Mamacita Donde Esta Santa Claus\donde-esta-alto.aac
+Mamacita Donde Esta Santa Claus\donde-esta-bass.aac
+Mamacita Donde Esta Santa Claus\donde-esta-sop.aac
+Mamacita Donde Esta Santa Claus\donde-esta-ten.aac
+Man With The Bag\alto-man-with-the-bag-24K.opus
+Man With The Bag\bass-man-with-the-bag-24K.opus
+Man With The Bag\sop-man-with-the-bag-24K.opus
+Man With The Bag\tenor-man-with-the-bag-24K.opus
+Man With The Bag\alto-man-with-the-bag-.aac
+Man With The Bag\bass-man-with-the-bag-.aac
+Man With The Bag\sop-man-with-the-bag-.aac
+Man With The Bag\tenor-man-with-the-bag-.aac
+Mele Kalikimaka\mele-kalikimaka-new-alto24K.opus
+Mele Kalikimaka\mele-kalikimaka-new-bass24K.opus
+Mele Kalikimaka\mele-kalikimaka-new-sop24K.opus
+Mele Kalikimaka\mele-kalikimaka-new-tenor24K.opus
+Mele Kalikimaka\mele-kalikimaka-new-alto.aac
+Mele Kalikimaka\mele-kalikimaka-new-bass.aac
+Mele Kalikimaka\mele-kalikimaka-new-sop.aac
+Mele Kalikimaka\mele-kalikimaka-new-tenor.aac
 Nine to Five\alto-nine-to-five24K.opus
 Nine to Five\bass-nine-to-five24K.opus
 Nine to Five\sop-nine-to-five24K.opus
