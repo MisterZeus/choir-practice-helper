@@ -1036,11 +1036,11 @@ fullMonoButton.addEventListener('click', () => {
 })
 
 fullStereoButton.addEventListener('click', () => {
-    resetHeroVoiceAndMix(getOptimalVoicePanValues(getExpectedTrackCount()))
+    resetHeroVoiceAndMix(getOptimalVoicePanValues(getExpectedTrackCount(), true))
 })
 
 leaderStereoButton.addEventListener('click', () => {
-    resetHeroVoiceAndMix(getOptimalVoicePanValues(getExpectedTrackCount(), true))
+    resetHeroVoiceAndMix(getOptimalVoicePanValues(getExpectedTrackCount()))
 })
 
 backingVolumeSlider.addEventListener('input', () => {
