@@ -7,7 +7,7 @@ rem winget install ffmpeg
 
 for /r %%F in (*.mp3 *.wav *.flac *.m4a *.ogg *.wma *.aiff *.alac) do (
     set "input=%%~fF"
-    set "output=%%~dpnF24K.opus"
+    set "output=%%~dpnF.opus"
 
     if /I "%%~xF"==".opus" (
         echo Skipping already-encoded Opus file: "%%~fF"
