@@ -70,6 +70,7 @@ function resetUiForNewSong() {
         stopButton.textContent = '⬅️'
         stopButton.setAttribute('aria-label', 'Stop playback')
     }
+    if (rewindButton) { rewindButton.disabled = true }
 
     if (audioStatus) { audioStatus.textContent = '' }
     if (safariWarning) { safariWarning.textContent = '' }
@@ -631,7 +632,7 @@ function rewind() {
         }
 
         const currentTime = getCurrentPlayhead()
-        if (currentTime <= 5) {
+        if (currentTime < 5) {
             return
         }
 
@@ -930,6 +931,10 @@ function updateTrackProgress() {
         trackProgressSlider.value = (100 * currentTime) / duration
 
         progressLabel.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`
+
+        if (rewindButton) {
+            rewindButton.disabled = currentTime < 5
+        }
     } catch (error) {
         console.error('Error during updateTrackProgress', error)
     }
