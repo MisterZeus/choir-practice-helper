@@ -1,4 +1,5 @@
 const safariWarning = document.getElementById('safariWarning')
+const rewindButton = document.getElementById('rewind')
 const playPauseButton = document.getElementById('playPause')
 const stopButton = document.getElementById('stop')
 const audioStatus = document.getElementById('audioStatus')
@@ -615,6 +616,35 @@ if (stopButton) {
     stopButton.addEventListener('click', () => {
         stop()
     })
+}
+
+if (rewindButton) {
+    rewindButton.addEventListener('click', () => {
+        rewind()
+    })
+}
+
+function rewind() {
+    try {
+        if (trackBuffers.length === 0) {
+            return
+        }
+
+        const currentTime = getCurrentPlayhead()
+        if (currentTime <= 5) {
+            return
+        }
+
+        playhead = Math.max(0, currentTime - 5)
+
+        if (isPlaying) {
+            startPlayback()
+        } else {
+            updateTrackProgress()
+        }
+    } catch (error) {
+        console.error('Error during rewind', error)
+    }
 }
 
 async function playPause() {
