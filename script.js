@@ -4,10 +4,13 @@ const playPauseButton = document.getElementById('playPause')
 const stopButton = document.getElementById('stop')
 const audioStatus = document.getElementById('audioStatus')
 const trackProgressContainer = document.getElementById('trackProgressContainer')
+const speedContainer = document.getElementById('speedContainer')
 const backingVolumeControl = document.getElementById('backingVolumeControl')
 const panningControls = document.getElementById('panningControls')
 const progressLabel = document.getElementById('progressLabel')
 const trackProgressSlider = document.getElementById('trackProgress')
+const speedControl = document.getElementById('speedControl')
+const speedLabel = document.getElementById('speedLabel')
 const trackVolumes = document.getElementById('trackVolumes')
 const panPresets = document.getElementById('panPresets')
 const songSelect = document.getElementById('songSelect')
@@ -89,6 +92,12 @@ function resetUiForNewSong() {
     if (panPresets) { panPresets.style.display = 'none' }
 
     if (backingVolumeControl) { backingVolumeControl.style.display = 'none' }
+
+    if (speedContainer) { speedContainer.style.display = 'none' }
+    if (speedControl) { speedControl.value = 1 }
+    if (speedLabel) { speedLabel.textContent = '1x' }
+    playbackSpeed = 1
+    activePlaybackSpeed = 1
 
     panningSliders = []
     if (panningControls) { panningControls.replaceChildren() }
@@ -564,11 +573,99 @@ let sourceNodes = []
 let isPlaying = false
 let isPaused = true
 let isSeeking = false
-let playhead = 0
-let playbackStartedAt = 0
+let playhead = 0.0
+let playbackStartedAt = 0.0
 let progressTimer = null
 let trackVolumeValues = []
 let mutedStates = []
+let playbackSpeed = 1.0
+let activePlaybackSpeed = 1.0
+let granularEngine = null
+
+// Granular time-stretch: replays short overlapping grains at a scaled read-speed so pitch stays constant while tempo changes.
+// A *fixed* grain period always beats with sustained vocal harmonics (audible as warbling), no matter how short it is,
+// so on top of a high overlap ratio and a smooth Hann window, we randomize both the grain period and the read
+// position per grain to remove the single beat frequency entirely rather than just shifting it.
+const GRAIN_DURATION = 0.12
+const GRAIN_PERIOD = 0.03
+const GRAIN_PERIOD_JITTER_RATIO = 0.6
+const GRAIN_POSITION_JITTER = 0.008
+const GRAIN_JITTER = 0.006
+const GRAIN_SCHEDULE_LOOKAHEAD = 0.1
+const GRAIN_SCHEDULE_INTERVAL = 25
+
+const GRAIN_ENVELOPE_STEPS = 32
+const GRAIN_ENVELOPE_CURVE = Float32Array.from(
+    { length: GRAIN_ENVELOPE_STEPS },
+    (_, index) => 0.5 * (1 - Math.cos((2 * Math.PI * index) / (GRAIN_ENVELOPE_STEPS - 1)))
+)
+
+class GranularEngine {
+    constructor(audioContext) {
+        this.audioContext = audioContext
+        this.timer = null
+        this.nextGrainTime = 0
+        this.startPlayhead = 0
+        this.startContextTime = 0
+        this.speed = 1
+    }
+
+    start(startPlayhead, speed, startContextTime) {
+        this.stop()
+        this.startPlayhead = startPlayhead
+        this.speed = speed
+        this.startContextTime = startContextTime
+        this.nextGrainTime = startContextTime
+        this.scheduleAheadLoop()
+    }
+
+    stop() {
+        clearTimeout(this.timer)
+        this.timer = null
+    }
+
+    scheduleAheadLoop = () => {
+        const duration = getTrackDuration()
+
+        while (this.nextGrainTime < this.audioContext.currentTime + GRAIN_SCHEDULE_LOOKAHEAD) {
+            const bufferPosition = this.startPlayhead + (this.nextGrainTime - this.startContextTime) * this.speed
+
+            if (duration > 0 && bufferPosition >= duration) {
+                this.stop()
+                return
+            }
+
+            this.scheduleGrain(this.nextGrainTime, bufferPosition)
+            this.nextGrainTime += GRAIN_PERIOD * (1 + (Math.random() - 0.5) * GRAIN_PERIOD_JITTER_RATIO)
+        }
+
+        this.timer = setTimeout(this.scheduleAheadLoop, GRAIN_SCHEDULE_INTERVAL)
+    }
+
+    scheduleGrain(time, bufferPosition) {
+        const grainTime = time + Math.random() * GRAIN_JITTER
+        const jitteredPosition = Math.max(0, bufferPosition + (Math.random() - 0.5) * GRAIN_POSITION_JITTER)
+
+        trackBuffers.forEach((buffer, index) => {
+            const gainNode = gainNodes[index]
+            if (!gainNode || jitteredPosition >= buffer.duration) {
+                return
+            }
+
+            const grainDuration = Math.min(GRAIN_DURATION, buffer.duration - jitteredPosition)
+
+            const envelope = this.audioContext.createGain()
+            envelope.connect(gainNode)
+            envelope.gain.setValueCurveAtTime(GRAIN_ENVELOPE_CURVE, grainTime, grainDuration)
+
+            const source = this.audioContext.createBufferSource()
+            source.buffer = buffer
+            source.connect(envelope)
+            source.start(grainTime, jitteredPosition, grainDuration)
+            source.stop(grainTime + grainDuration + 0.01)
+        })
+    }
+}
 
 function setStatus(message) {
     if (audioStatus) {
@@ -776,6 +873,7 @@ async function loadAudioBuffers() {
 
         panPresets.style.display = 'flex'
         trackProgressContainer.style.display = 'flex'
+        if (speedContainer) { speedContainer.style.display = 'flex' }
 
         const decodedBuffers = await preloadSongAudioBuffers(songFolder)
 
@@ -816,17 +914,25 @@ function startPlayback() {
         }
 
         stopSourceNodes()
+        activePlaybackSpeed = playbackSpeed
         playbackStartedAt = audioContext.currentTime
         const when = playbackStartedAt + 0.05
-        sourceNodes = []
 
-        trackBuffers.forEach((buffer, index) => {
-            const source = audioContext.createBufferSource()
-            source.buffer = buffer
-            source.connect(gainNodes[index])
-            source.start(when, playhead)
-            sourceNodes.push(source)
-        })
+        if (Math.abs(activePlaybackSpeed - 1) < 0.001) {
+            sourceNodes = []
+            trackBuffers.forEach((buffer, index) => {
+                const source = audioContext.createBufferSource()
+                source.buffer = buffer
+                source.connect(gainNodes[index])
+                source.start(when, playhead)
+                sourceNodes.push(source)
+            })
+        } else {
+            if (!granularEngine) {
+                granularEngine = new GranularEngine(audioContext)
+            }
+            granularEngine.start(playhead, activePlaybackSpeed, when)
+        }
 
         isPlaying = true
         isPaused = false
@@ -876,6 +982,10 @@ function stopSourceNodes() {
             }
         })
         sourceNodes = []
+
+        if (granularEngine) {
+            granularEngine.stop()
+        }
     } catch (error) {
         console.error('Error during stopSourceNodes', error)
     }
@@ -894,9 +1004,33 @@ function getCurrentPlayhead() {
         if (!isPlaying || !audioContext) {
             return playhead
         }
-        return playhead + (audioContext.currentTime - playbackStartedAt)
+        return playhead + (audioContext.currentTime - playbackStartedAt) * activePlaybackSpeed
     } catch (error) {
         console.error('Error during getCurrentPlayhead', error)
+    }
+}
+
+function changeSpeed(value) {
+    try {
+        const speed = parseFloat(value)
+        if (isNaN(speed)) {
+            return
+        }
+
+        if (isPlaying) {
+            playhead = getCurrentPlayhead()
+        }
+
+        playbackSpeed = speed
+        if (speedLabel) {
+            speedLabel.textContent = `${speed}x`
+        }
+
+        if (isPlaying) {
+            startPlayback()
+        }
+    } catch (error) {
+        console.error('Error during changeSpeed', error)
     }
 }
 
@@ -1056,6 +1190,14 @@ trackProgressSlider.addEventListener('input', (event) => {
     progressLabel.textContent = `${formatTime((event.target.value / 100) * getTrackDuration())} / ${formatTime(getTrackDuration())}`
     seekTrack(event.target.value)
 })
+
+if (speedControl) {
+    speedControl.addEventListener('input', (event) => {
+        if (speedLabel) {
+            speedLabel.textContent = `${event.target.value}x`
+        }
+    })
+}
 
 panningSliders.forEach((slider, index) => {
     slider.addEventListener('input', (event) => {
