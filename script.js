@@ -58,6 +58,8 @@ function updateUrlFromState() {
 
 function resetUiForNewSong() {
     stopSourceNodes()
+    void releaseWakeLock()
+    updateMediaSessionPlaybackState('none')
 
     trackBuffers = []
 
