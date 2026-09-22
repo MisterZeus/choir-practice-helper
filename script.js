@@ -1,5 +1,6 @@
 const safariWarning = document.getElementById('safariWarning')
 const rewindButton = document.getElementById('rewind')
+const fastForwardButton = document.getElementById('fastForward')
 const playPauseButton = document.getElementById('playPause')
 const stopButton = document.getElementById('stop')
 const audioStatus = document.getElementById('audioStatus')
@@ -74,6 +75,7 @@ function resetUiForNewSong() {
         stopButton.setAttribute('aria-label', 'Stop playback')
     }
     if (rewindButton) { rewindButton.disabled = true }
+    if (fastForwardButton) { fastForwardButton.disabled = true }
 
     if (audioStatus) { audioStatus.textContent = '' }
     if (safariWarning) { safariWarning.textContent = '' }
@@ -231,6 +233,14 @@ function getSharedAudioContext() {
 
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+        // Mobile OSes can suspend/interrupt the context (e.g. screen lock, phone call); resume it automatically if we were playing.
+        audioContext.onstatechange = () => {
+            console.log('AudioContext: state changed to', audioContext.state)
+            if (isPlaying && (audioContext.state === 'suspended' || audioContext.state === 'interrupted')) {
+                void audioContext.resume()
+            }
+        }
     }
 
     return audioContext
@@ -723,6 +733,12 @@ if (rewindButton) {
     })
 }
 
+if (fastForwardButton) {
+    fastForwardButton.addEventListener('click', () => {
+        fastForward()
+    })
+}
+
 function rewind() {
     try {
         if (trackBuffers.length === 0) {
@@ -743,6 +759,30 @@ function rewind() {
         }
     } catch (error) {
         console.error('Error during rewind', error)
+    }
+}
+
+function fastForward() {
+    try {
+        if (trackBuffers.length === 0) {
+            return
+        }
+
+        const duration = getTrackDuration()
+        const currentTime = getCurrentPlayhead()
+        if (currentTime > duration - 5) {
+            return
+        }
+
+        playhead = Math.min(duration, currentTime + 5)
+
+        if (isPlaying) {
+            startPlayback()
+        } else {
+            updateTrackProgress()
+        }
+    } catch (error) {
+        console.error('Error during fastForward', error)
     }
 }
 
@@ -796,6 +836,7 @@ function stop() {
         stopButton.textContent = '⬅️'
         updateTrackProgress()
         void releaseWakeLock()
+        updateMediaSessionPlaybackState('none')
 
         if (is_iOS_Safari && !isPlaying) {
             safariWarning.textContent = ""
@@ -840,12 +881,53 @@ async function releaseWakeLock() {
     }
 }
 
-// The browser auto-releases the lock when the tab is hidden, so re-request it once the tab is visible again.
+// The browser auto-releases the wake lock (and may suspend the AudioContext) when the tab is hidden; restore both once visible again.
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && isPlaying) {
         void requestWakeLock()
+        if (audioContext && audioContext.state === 'suspended') {
+            void audioContext.resume()
+        }
     }
 })
+
+// Registering a Media Session tells mobile OSes this page is playing real media, which grants lock-screen
+// controls and exempts audio playback from the background-tab throttling/suspension that would otherwise apply.
+function setupMediaSession() {
+    if (!('mediaSession' in navigator)) {
+        console.log('Media Session: API not supported in this browser.')
+        return
+    }
+
+    navigator.mediaSession.setActionHandler('play', () => { if (isPaused) { playPause() } })
+    navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) { playPause() } })
+    navigator.mediaSession.setActionHandler('stop', () => stop())
+    navigator.mediaSession.setActionHandler('seekbackward', () => rewind())
+    navigator.mediaSession.setActionHandler('seekforward', () => fastForward())
+    console.log('Media Session: action handlers registered.')
+}
+
+function updateMediaSessionMetadata() {
+    if (!('mediaSession' in navigator)) {
+        return
+    }
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: songFolder || 'Choir Practice Helper',
+        artist: 'Choir Practice Helper',
+    })
+}
+
+function updateMediaSessionPlaybackState(state) {
+    if (!('mediaSession' in navigator)) {
+        return
+    }
+
+    navigator.mediaSession.playbackState = state
+    console.log('Media Session: playback state set to', state)
+}
+
+setupMediaSession()
 
 async function setupAudio() {
     try {
@@ -988,6 +1070,8 @@ function startPlayback() {
         clearInterval(progressTimer)
         progressTimer = setInterval(updateTrackProgress, 250)
         void requestWakeLock()
+        updateMediaSessionMetadata()
+        updateMediaSessionPlaybackState('playing')
     } catch (error) {
         console.error('Error during startPlayback', error)
     }
@@ -1008,6 +1092,7 @@ function pausePlayback() {
         playPauseButton.setAttribute('aria-label', 'Play audio')
         playPauseButton.setAttribute('aria-pressed', 'false')
         void releaseWakeLock()
+        updateMediaSessionPlaybackState('paused')
     } catch (error) {
         console.error('Error during pause', error)
     }
@@ -1107,6 +1192,7 @@ function updateTrackProgress() {
             clearInterval(progressTimer)
             playPauseButton.textContent = '▶️'
             void releaseWakeLock()
+            updateMediaSessionPlaybackState('none')
         }
 
         trackProgressSlider.value = (100 * currentTime) / duration
@@ -1115,6 +1201,9 @@ function updateTrackProgress() {
 
         if (rewindButton) {
             rewindButton.disabled = currentTime < 5
+        }
+        if (fastForwardButton) {
+            fastForwardButton.disabled = currentTime > duration - 5
         }
     } catch (error) {
         console.error('Error during updateTrackProgress', error)

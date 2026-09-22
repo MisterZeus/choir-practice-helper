@@ -19,6 +19,7 @@
             <div>
                 <ul>
                     <li>⏪ rewind 5 seconds</li>
+                    <li>⏩ fast forward 5 seconds</li>
                     <li>▶️ play, ⏸️ pause</li>
                     <li>⏹️ stop</li>
                     <li>🔊 mute, 🔇 unmute</li>
@@ -38,16 +39,20 @@
             <p id="audioStatus" aria-live="polite" style="color: #666;"></p>
 
             <div>
-                <button type="button" id="rewind" disabled
-                    aria-label="Rewind 5 seconds">
-                    <span aria-hidden="true">⏪</span>
+                <button type="button" id="stop" disabled
+                    aria-label="Stop playback">
+                    <span aria-hidden="true">⏹️</span>
                 </button>
                 <button type="button" id="playPause" aria-label="Play audio">
                     <span aria-hidden="true">▶️</span>
                 </button>
-                <button type="button" id="stop" disabled
-                    aria-label="Stop playback">
-                    <span aria-hidden="true">⬅️</span>
+                <button type="button" id="rewind" disabled
+                    aria-label="Rewind 5 seconds">
+                    <span aria-hidden="true">⏪</span>
+                </button>
+                <button type="button" id="fastForward" disabled
+                    aria-label="Fast forward 5 seconds">
+                    <span aria-hidden="true">⏩</span>
                 </button>
             </div>
             <div id="trackProgressContainer" style="display:none">
