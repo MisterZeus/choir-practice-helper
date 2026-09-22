@@ -581,6 +581,7 @@ let mutedStates = []
 let playbackSpeed = 1.0
 let activePlaybackSpeed = 1.0
 let granularEngine = null
+let wakeLock = null
 
 // Granular time-stretch: replays short overlapping grains at a scaled read-speed so pitch stays constant while tempo changes.
 // A *fixed* grain period always beats with sustained vocal harmonics (audible as warbling), no matter how short it is,
@@ -794,6 +795,7 @@ function stop() {
         stopButton.disabled = true
         stopButton.textContent = '⬅️'
         updateTrackProgress()
+        void releaseWakeLock()
 
         if (is_iOS_Safari && !isPlaying) {
             safariWarning.textContent = ""
@@ -802,6 +804,48 @@ function stop() {
         console.error('Error during stop', error)
     }
 }
+
+async function requestWakeLock() {
+    try {
+        if (!('wakeLock' in navigator)) {
+            console.log('Wake Lock: API not supported in this browser.')
+            return
+        }
+
+        if (wakeLock) {
+            return
+        }
+
+        wakeLock = await navigator.wakeLock.request('screen')
+        console.log('Wake Lock: acquired.')
+
+        wakeLock.addEventListener('release', () => {
+            console.log('Wake Lock: released.')
+            wakeLock = null
+        })
+    } catch (error) {
+        console.error('Wake Lock: error acquiring lock', error)
+    }
+}
+
+async function releaseWakeLock() {
+    try {
+        if (!wakeLock) {
+            return
+        }
+
+        await wakeLock.release()
+    } catch (error) {
+        console.error('Wake Lock: error releasing lock', error)
+    }
+}
+
+// The browser auto-releases the lock when the tab is hidden, so re-request it once the tab is visible again.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isPlaying) {
+        void requestWakeLock()
+    }
+})
 
 async function setupAudio() {
     try {
@@ -943,6 +987,7 @@ function startPlayback() {
         stopButton.disabled = false
         clearInterval(progressTimer)
         progressTimer = setInterval(updateTrackProgress, 250)
+        void requestWakeLock()
     } catch (error) {
         console.error('Error during startPlayback', error)
     }
@@ -962,6 +1007,7 @@ function pausePlayback() {
         playPauseButton.textContent = '▶️'
         playPauseButton.setAttribute('aria-label', 'Play audio')
         playPauseButton.setAttribute('aria-pressed', 'false')
+        void releaseWakeLock()
     } catch (error) {
         console.error('Error during pause', error)
     }
@@ -1060,6 +1106,7 @@ function updateTrackProgress() {
             isPaused = true
             clearInterval(progressTimer)
             playPauseButton.textContent = '▶️'
+            void releaseWakeLock()
         }
 
         trackProgressSlider.value = (100 * currentTime) / duration
