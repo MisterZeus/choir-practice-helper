@@ -29,6 +29,7 @@ let presetButtons = []
 let panningSliders = []
 
 const choirVoices = ['soprano', 'alto', 'tenor', 'bass', 'top', 'middle', 'bottom']
+const SEEK_SKIP_SECONDS = 10
 
 function restoreStateFromUrl() {
     const params = new URLSearchParams(window.location.search)
@@ -188,13 +189,34 @@ function getSongFilesFromAudioPaths(audioPaths, targetFolder) {
         .sort((a, b) => getVoiceOrder(a) - getVoiceOrder(b))
 }
 
-async function fetchAudioBlobs(urls) {
+// Fetch/decode progress is reported per cacheKey rather than per-call, since a song's audio is often already
+// being fetched/decoded by a background prefetch by the time loadAudioBuffers() wants to show progress for it.
+const songLoadProgressListeners = new Map()
+
+function subscribeToLoadProgress(cacheKey, listener) {
+    if (!songLoadProgressListeners.has(cacheKey)) {
+        songLoadProgressListeners.set(cacheKey, new Set())
+    }
+    songLoadProgressListeners.get(cacheKey).add(listener)
+
+    return () => {
+        songLoadProgressListeners.get(cacheKey)?.delete(listener)
+    }
+}
+
+function emitLoadProgress(cacheKey, phase, index, total) {
+    songLoadProgressListeners.get(cacheKey)?.forEach((listener) => listener(phase, index, total))
+}
+
+async function fetchAudioBlobs(urls, cacheKey) {
     const audioBlobs = []
 
-    for (const url of urls) {
-        const response = await fetch(url)
+    for (let index = 0; index < urls.length; index += 1) {
+        emitLoadProgress(cacheKey, 'download', index + 1, urls.length)
+
+        const response = await fetch(urls[index])
         if (!response.ok) {
-            throw new Error(`Could not fetch ${url}: ${response.status}`)
+            throw new Error(`Could not fetch ${urls[index]}: ${response.status}`)
         }
 
         audioBlobs.push(await response.blob())
@@ -214,7 +236,7 @@ async function prefetchSongAudioBuffers(folder) {
         const prefetchPromise = (async () => {
             const audioPaths = await audioPathsPromise
             const songFilesForFolder = getSongFilesFromAudioPaths(audioPaths, targetFolder)
-            return fetchAudioBlobs(songFilesForFolder)
+            return fetchAudioBlobs(songFilesForFolder, cacheKey)
         })().catch((error) => {
             songAudioBufferPrefetches.delete(cacheKey)
             throw error
@@ -263,6 +285,7 @@ function getDecodingAudioContext() {
 }
 
 // Decodes buffers in the background so playback can start instantly once the user presses play.
+// Subscribe via subscribeToLoadProgress(cacheKey, ...) to observe download/decode progress for a folder.
 async function preloadSongAudioBuffers(folder) {
     const targetFolder = normalizeSongFolder(folder)
     if (!targetFolder) {
@@ -276,9 +299,11 @@ async function preloadSongAudioBuffers(folder) {
             const context = getDecodingAudioContext()
 
             const decodedBuffers = []
-            for (const audioBlob of audioBlobs) {
+            for (let index = 0; index < audioBlobs.length; index += 1) {
+                emitLoadProgress(cacheKey, 'decode', index + 1, audioBlobs.length)
+
                 // Firefox may detach buffers after decodeAudioData; decode from a fresh buffer each time.
-                const arrayBuffer = await audioBlob.arrayBuffer()
+                const arrayBuffer = await audioBlobs[index].arrayBuffer()
                 decodedBuffers.push(await context.decodeAudioData(arrayBuffer))
             }
             return decodedBuffers
@@ -746,11 +771,11 @@ function rewind() {
         }
 
         const currentTime = getCurrentPlayhead()
-        if (currentTime < 5) {
+        if (currentTime < SEEK_SKIP_SECONDS) {
             return
         }
 
-        playhead = Math.max(0, currentTime - 5)
+        playhead = Math.max(0, currentTime - SEEK_SKIP_SECONDS)
 
         if (isPlaying) {
             startPlayback()
@@ -770,11 +795,11 @@ function fastForward() {
 
         const duration = getTrackDuration()
         const currentTime = getCurrentPlayhead()
-        if (currentTime > duration - 5) {
+        if (currentTime > duration - SEEK_SKIP_SECONDS) {
             return
         }
 
-        playhead = Math.min(duration, currentTime + 5)
+        playhead = Math.min(duration, currentTime + SEEK_SKIP_SECONDS)
 
         if (isPlaying) {
             startPlayback()
@@ -1001,7 +1026,18 @@ async function loadAudioBuffers() {
         trackProgressContainer.style.display = 'flex'
         if (speedContainer) { speedContainer.style.display = 'flex' }
 
-        const decodedBuffers = await preloadSongAudioBuffers(songFolder)
+        const cacheKey = `${normalizeSongFolder(songFolder)}|${audioFileExtension}`
+        const unsubscribeFromLoadProgress = subscribeToLoadProgress(cacheKey, (phase, index, total) => {
+            const verb = phase === 'download' ? 'Downloading' : 'Decoding'
+            setStatus(`${verb} audio track ${index} of ${total}...`)
+        })
+
+        let decodedBuffers
+        try {
+            decodedBuffers = await preloadSongAudioBuffers(songFolder)
+        } finally {
+            unsubscribeFromLoadProgress()
+        }
 
         if (decodedBuffers.length !== songFiles.length) {
             throw new Error(`Expected ${songFiles.length} decoded buffers, but found ${decodedBuffers.length}`)
@@ -1200,10 +1236,10 @@ function updateTrackProgress() {
         progressLabel.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`
 
         if (rewindButton) {
-            rewindButton.disabled = currentTime < 5
+            rewindButton.disabled = currentTime < SEEK_SKIP_SECONDS
         }
         if (fastForwardButton) {
-            fastForwardButton.disabled = currentTime > duration - 5
+            fastForwardButton.disabled = currentTime > duration - SEEK_SKIP_SECONDS
         }
     } catch (error) {
         console.error('Error during updateTrackProgress', error)
