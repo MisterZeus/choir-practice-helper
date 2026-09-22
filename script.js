@@ -948,6 +948,10 @@ function updateMediaSessionPlaybackState(state) {
         return
     }
 
+    if (navigator.mediaSession.playbackState === state) {
+        return
+    }
+
     navigator.mediaSession.playbackState = state
     console.log('Media Session: playback state set to', state)
 }
