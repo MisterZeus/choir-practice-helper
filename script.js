@@ -437,7 +437,7 @@ function createTrackControlRow(index, label, voiceName) {
         if (heroVoice === targetVoice) {
             heroVoice = ''
             updateTrackVolumes(...getDefaultTrackVolumes())
-            updatePanningValues(...getOptimalVoicePanValues(getExpectedTrackCount()))
+            updatePanningValues(...getOptimalVoicePanValues(getExpectedTrackCount(), true))
             return
         }
 
@@ -528,7 +528,7 @@ function createPanningControls() {
             slider.min = '-1'
             slider.max = '1'
             slider.step = '0.01'
-            slider.value = getOptimalVoicePanValues(getExpectedTrackCount())[index]
+            slider.value = getOptimalVoicePanValues(getExpectedTrackCount(), true)[index]
             slider.disabled = true
 
             const rightLabel = document.createElement('label')
