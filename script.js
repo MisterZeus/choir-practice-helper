@@ -28,7 +28,7 @@ let trackVolumeSliders = []
 let presetButtons = []
 let panningSliders = []
 
-const choirVoices = ['soprano', 'alto', 'tenor', 'bass', 'top', 'middle', 'bottom']
+const choirVoices = ['soprano', 'alto', 'tenor', 'bass', 'voice', 'top', 'middle', 'bottom']
 const SEEK_SKIP_SECONDS = 10
 
 function restoreStateFromUrl() {
@@ -74,7 +74,7 @@ function resetUiForNewSong() {
     }
     if (stopButton) {
         stopButton.disabled = true
-        stopButton.textContent = '⬅️'
+        stopButton.textContent = '⏹️'
         stopButton.setAttribute('aria-label', 'Stop playback')
     }
     if (rewindButton) { rewindButton.disabled = true }
@@ -92,6 +92,7 @@ function resetUiForNewSong() {
     trackVolumeSliders = []
     if (trackVolumes) { trackVolumes.replaceChildren() }
     trackVolumeValues = []
+    heroVoice = ''
 
     presetButtons = []
     if (panPresets) { panPresets.style.display = 'none' }
@@ -162,21 +163,24 @@ function getOptimalVoicePanValues(voiceCount, reverse = false) {
 
 function getVoiceOrder(file) {
     const lower = file.toLowerCase()
-    if (lower.includes('soprano')) return 0
-    if (lower.includes('alto')) return 1
-    if (lower.includes('tenor')) return 2
-    if (lower.includes('bass')) return 3
-    if (lower.includes('top')) return 4
-    if (lower.includes('middle')) return 5
-    if (lower.includes('bottom')) return 6
 
-    if (lower.includes('sop')) return 0
-    if (lower.includes('alt')) return 1
-    if (lower.includes('ten')) return 2
-    if (lower.includes('bas')) return 3
-    if (lower.includes('mid')) return 5
-    if (lower.includes('bot')) return 6
-    return 4
+    if (lower.includes('soprano')) return 1
+    if (lower.includes('alto')) return 2
+    if (lower.includes('tenor')) return 3
+    if (lower.includes('bass')) return 4
+    if (lower.includes('top')) return 5
+    if (lower.includes('middle')) return 6
+    if (lower.includes('bottom')) return 7
+    if (lower.includes('voice')) return 8
+
+    if (lower.includes('sop')) return 1
+    if (lower.includes('alt')) return 2
+    if (lower.includes('ten')) return 3
+    if (lower.includes('bas')) return 4
+    if (lower.includes('mid')) return 6
+    if (lower.includes('bot')) return 7
+
+    return 9
 }
 
 function getSongFilesFromAudioPaths(audioPaths, targetFolder) {
@@ -460,7 +464,7 @@ function buildTrackControlRows() {
     trackVolumes.replaceChildren()
 
     const voiceNames = choirVoices
-    const labels = ['S', 'A', 'T', 'B', 'Top', 'Mid', 'Bot']
+    const labels = ['S', 'A', 'T', 'B', 'V', 'Top', 'Mid', 'Bot']
 
     const rows = voiceNames
         .slice(0, getExpectedTrackCount())
@@ -515,7 +519,7 @@ function createPanningControls() {
 
     panningControls.replaceChildren()
 
-    const labels = ['S', 'A', 'T', 'B', 'Top', 'Mid', 'Bot']
+    const labels = ['S', 'A', 'T', 'B', 'V', 'Top', 'Mid', 'Bot']
 
     return Array.from({ length: getExpectedTrackCount() }, (_, index) => labels[index] || String(index + 1))
         .map((label, index) => {
@@ -1008,7 +1012,6 @@ async function loadAudioBuffers() {
     try {
         isLoadingAudio = true
         playPauseButton.disabled = true
-        stopButton.textContent = '.'
         setStatus('Loading audio tracks...')
 
         await refreshSongFiles()

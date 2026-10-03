@@ -6,6 +6,16 @@ Accentuate\alto-accentuate24K.aac
 Accentuate\bass-accentuate24K.aac
 Accentuate\sop-accentuate24K.aac
 Accentuate\tenor-accentuate24K.aac
+All I Want For Xmas\alto-all-i-want-for-christmas-.opus
+All I Want For Xmas\bass-all-i-want-for-christmas-.opus
+All I Want For Xmas\sop-all-i-want-for-christmas-.opus
+All I Want For Xmas\ten-all-i-want-for-christmas-.opus
+All I Want For Xmas\voice-all-i-want-for-christmas-.opus
+All I Want For Xmas\alto-all-i-want-for-christmas-.aac
+All I Want For Xmas\bass-all-i-want-for-christmas-.aac
+All I Want For Xmas\sop-all-i-want-for-christmas-.aac
+All I Want For Xmas\ten-all-i-want-for-christmas-.aac
+All I Want For Xmas\voice-all-i-want-for-christmas-.aac
 Be My Baby\be-my-baby-alto24K.opus
 Be My Baby\be-my-baby-bass24K.opus
 Be My Baby\be-my-baby-sop24K.opus
@@ -14,6 +24,14 @@ Be My Baby\be-my-baby-alto24K.aac
 Be My Baby\be-my-baby-bass24K.aac
 Be My Baby\be-my-baby-sop24K.aac
 Be My Baby\be-my-baby-tenor24K.aac
+Blue Christmas\alto-blue-christmas.opus
+Blue Christmas\bass-blue-christmas.opus
+Blue Christmas\sop-blue-christmas.opus
+Blue Christmas\tenor-blue-christmas.opus
+Blue Christmas\alto-blue-christmas.aac
+Blue Christmas\bass-blue-christmas.aac
+Blue Christmas\sop-blue-christmas.aac
+Blue Christmas\tenor-blue-christmas.aac
 Breaking Up Is Hard To Do\bass-breaking-up-924K.opus
 Breaking Up Is Hard To Do\breaking-up-alto24K.opus
 Breaking Up Is Hard To Do\breaking-up-sop24K.opus
@@ -60,6 +78,22 @@ Fairytale of New York\fairytale-alto.aac
 Fairytale of New York\fairytale-bass.aac
 Fairytale of New York\fairytale-soprano.aac
 Fairytale of New York\fairytale-tenor.aac
+Georgia On My Mind\georgia-on-my-mind-alt.opus
+Georgia On My Mind\georgia-on-my-mind-bass.opus
+Georgia On My Mind\georgia-on-my-mind-sop.opus
+Georgia On My Mind\georgia-on-my-mind-ten.opus
+Georgia On My Mind\georgia-on-my-mind-alt.aac
+Georgia On My Mind\georgia-on-my-mind-bass.aac
+Georgia On My Mind\georgia-on-my-mind-sop.aac
+Georgia On My Mind\georgia-on-my-mind-ten.aac
+Have Yourself a Merry Little Xmas\alto-have-yourself-a-jazzy-christmas-.opus
+Have Yourself a Merry Little Xmas\bass-have-yourself-a-jazzy-christmas-.opus
+Have Yourself a Merry Little Xmas\sop-have-yourself-a-jazzy-christmas-.opus
+Have Yourself a Merry Little Xmas\tenor-have-yourself-a-jazzy-christmas-.opus
+Have Yourself a Merry Little Xmas\alto-have-yourself-a-jazzy-christmas-.aac
+Have Yourself a Merry Little Xmas\bass-have-yourself-a-jazzy-christmas-.aac
+Have Yourself a Merry Little Xmas\sop-have-yourself-a-jazzy-christmas-.aac
+Have Yourself a Merry Little Xmas\tenor-have-yourself-a-jazzy-christmas-.aac
 Let It Snow\alto-let-it-snow-124K.opus
 Let It Snow\bass-let-it-snow24K.opus
 Let It Snow\sop-let-it-snow24K.opus
@@ -100,6 +134,22 @@ Nine to Five\alto-nine-to-five.aac
 Nine to Five\bass-nine-to-five.aac
 Nine to Five\sop-nine-to-five.aac
 Nine to Five\tenor-nine-to-five.aac
+Rockin Around The Xmas Tree\alto-rockin-around-the-christmas-.opus
+Rockin Around The Xmas Tree\bass-rockin-around-the-christmas.opus
+Rockin Around The Xmas Tree\sop-rockin-around-the-christmas-.opus
+Rockin Around The Xmas Tree\tenor-rockin-around-the-christmas.opus
+Rockin Around The Xmas Tree\alto-rockin-around-the-christmas-.aac
+Rockin Around The Xmas Tree\bass-rockin-around-the-christmas.aac
+Rockin Around The Xmas Tree\sop-rockin-around-the-christmas-.aac
+Rockin Around The Xmas Tree\tenor-rockin-around-the-christmas.aac
+Santa Baby\alto-santa-baby-3.opus
+Santa Baby\bass-santa-baby-4.opus
+Santa Baby\sop-santa-baby-2.opus
+Santa Baby\tenor-santa-baby-1.opus
+Santa Baby\alto-santa-baby-3.aac
+Santa Baby\bass-santa-baby-4.aac
+Santa Baby\sop-santa-baby-2.aac
+Santa Baby\tenor-santa-baby-1.aac
 Somewhere Over The Downland (B flat)\alto-somewhere-over-the-downland.opus
 Somewhere Over The Downland (B flat)\bass-somewhere-over-the-downland.opus
 Somewhere Over The Downland (B flat)\sop-somewhere-over-the-downland.opus
@@ -108,6 +158,14 @@ Somewhere Over The Downland (B flat)\alto-somewhere-over-the-downland.aac
 Somewhere Over The Downland (B flat)\bass-somewhere-over-the-downland.aac
 Somewhere Over The Downland (B flat)\sop-somewhere-over-the-downland.aac
 Somewhere Over The Downland (B flat)\ten-somewhere-over-the-downland.aac
+Stay\stay-alto.opus
+Stay\stay-bass.opus
+Stay\stay-sop.opus
+Stay\stay-tenor.opus
+Stay\stay-alto.aac
+Stay\stay-bass.aac
+Stay\stay-sop.aac
+Stay\stay-tenor.aac
 Sway With Me\sway-alto24K.opus
 Sway With Me\sway-bass24K.opus
 Sway With Me\sway-sop24K.opus
@@ -116,3 +174,19 @@ Sway With Me\sway-alto.aac
 Sway With Me\sway-bass.aac
 Sway With Me\sway-sop.aac
 Sway With Me\sway-ten.aac
+What Are You Doing New Year's Eve\alto-what-are-you-doing-nye.opus
+What Are You Doing New Year's Eve\bass-what-are-you-doing-nye.opus
+What Are You Doing New Year's Eve\sop-what-are-you-doing-nye.opus
+What Are You Doing New Year's Eve\tenor-what-are-you-doing-nye.opus
+What Are You Doing New Year's Eve\alto-what-are-you-doing-nye.aac
+What Are You Doing New Year's Eve\bass-what-are-you-doing-nye.aac
+What Are You Doing New Year's Eve\sop-what-are-you-doing-nye.aac
+What Are You Doing New Year's Eve\tenor-what-are-you-doing-nye.aac
+Winter Wonderland\alto-winter-wonderland.opus
+Winter Wonderland\bass-winter-wonderland.opus
+Winter Wonderland\sop-winter-wonderland.opus
+Winter Wonderland\tenor-winter-wonderland.opus
+Winter Wonderland\alto-winter-wonderland.aac
+Winter Wonderland\bass-winter-wonderland.aac
+Winter Wonderland\sop-winter-wonderland.aac
+Winter Wonderland\tenor-winter-wonderland.aac
