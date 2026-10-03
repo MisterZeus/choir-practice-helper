@@ -1,0 +1,10 @@
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.ogg
+*.wma
+*.aiff
+*.alac
+!*.opus
+!*.aac
