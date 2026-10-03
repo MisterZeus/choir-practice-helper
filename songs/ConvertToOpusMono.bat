@@ -13,7 +13,7 @@ for /r %%F in (*.mp3 *.wav *.flac *.m4a *.ogg *.wma *.aiff *.alac) do (
         echo Skipping already-encoded Opus file: "%%~fF"
     ) else (
         echo Converting "!input!" to "!output!"
-        ffmpeg -i "!input!" -c:a libopus -b:a 24k -vbr on -ac 1 -map_metadata 0 -y "!output!"
+        ffmpeg -i "!input!" -c:a libopus -b:a 16k -vbr on -ac 1 -map_metadata 0 -y "!output!"
     )
 )
 
