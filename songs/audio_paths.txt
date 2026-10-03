@@ -1,7 +1,7 @@
-Accentuate\alto-accentuate24K.opus
-Accentuate\bass-accentuate24K.opus
-Accentuate\sop-accentuate24K.opus
-Accentuate\tenor-accentuate24K.opus
+Accentuate\alto-accentuate.opus
+Accentuate\bass-accentuate.opus
+Accentuate\sop-accentuate.opus
+Accentuate\tenor-accentuate.opus
 Accentuate\alto-accentuate24K.aac
 Accentuate\bass-accentuate24K.aac
 Accentuate\sop-accentuate24K.aac
@@ -16,10 +16,10 @@ All I Want For Xmas\bass-all-i-want-for-christmas-.aac
 All I Want For Xmas\sop-all-i-want-for-christmas-.aac
 All I Want For Xmas\ten-all-i-want-for-christmas-.aac
 All I Want For Xmas\voice-all-i-want-for-christmas-.aac
-Be My Baby\be-my-baby-alto24K.opus
-Be My Baby\be-my-baby-bass24K.opus
-Be My Baby\be-my-baby-sop24K.opus
-Be My Baby\be-my-baby-tenor24K.opus
+Be My Baby\be-my-baby-alto.opus
+Be My Baby\be-my-baby-bass.opus
+Be My Baby\be-my-baby-sop.opus
+Be My Baby\be-my-baby-tenor.opus
 Be My Baby\be-my-baby-alto24K.aac
 Be My Baby\be-my-baby-bass24K.aac
 Be My Baby\be-my-baby-sop24K.aac
@@ -32,37 +32,37 @@ Blue Christmas\alto-blue-christmas.aac
 Blue Christmas\bass-blue-christmas.aac
 Blue Christmas\sop-blue-christmas.aac
 Blue Christmas\tenor-blue-christmas.aac
-Breaking Up Is Hard To Do\bass-breaking-up-924K.opus
-Breaking Up Is Hard To Do\breaking-up-alto24K.opus
-Breaking Up Is Hard To Do\breaking-up-sop24K.opus
-Breaking Up Is Hard To Do\breaking-up-ten24K.opus
+Breaking Up Is Hard To Do\bass-breaking-up-9.opus
+Breaking Up Is Hard To Do\breaking-up-alto.opus
+Breaking Up Is Hard To Do\breaking-up-sop.opus
+Breaking Up Is Hard To Do\breaking-up-ten.opus
 Breaking Up Is Hard To Do\bass-breaking-up-9.aac
 Breaking Up Is Hard To Do\breaking-up-alto.aac
 Breaking Up Is Hard To Do\breaking-up-sop.aac
 Breaking Up Is Hard To Do\breaking-up-ten.aac
-Carol of the Drum\little-drummer-alto24K.opus
-Carol of the Drum\little-drummer-bass24K.opus
-Carol of the Drum\little-drummer-sop24K.opus
-Carol of the Drum\little-drummer-tenor24K.opus
+Carol of the Drum\little-drummer-alto.opus
+Carol of the Drum\little-drummer-bass.opus
+Carol of the Drum\little-drummer-sop.opus
+Carol of the Drum\little-drummer-tenor.opus
 Carol of the Drum\little-drummer-alto.aac
 Carol of the Drum\little-drummer-bass.aac
 Carol of the Drum\little-drummer-sop.aac
 Carol of the Drum\little-drummer-tenor.aac
-Choo Choo Ch-boogie\choo-choo-chboogie-alto24K.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-bass24K.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-sop24K.opus
-Choo Choo Ch-boogie\choo-choo-chboogie-ten24K.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-alto.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-bass.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-sop.opus
+Choo Choo Ch-boogie\choo-choo-chboogie-ten.opus
 Choo Choo Ch-boogie\choo-choo-chboogie-alto24K.aac
 Choo Choo Ch-boogie\choo-choo-chboogie-bass24K.aac
 Choo Choo Ch-boogie\choo-choo-chboogie-sop24K.aac
 Choo Choo Ch-boogie\choo-choo-chboogie-ten24K.aac
-Do You Love Me\alto-do-you-love-me24K.opus
-Do You Love Me\bass-do-you-love-me24K.opus
-Do You Love Me\bottom-do-you-love-me24K.opus
-Do You Love Me\mid-do-you-love-me24K.opus
-Do You Love Me\sop-do-you-love-me24K.opus
-Do You Love Me\tenor-do-you-love-me24K.opus
-Do You Love Me\top-do-you-love-me24K.opus
+Do You Love Me\alto-do-you-love-me.opus
+Do You Love Me\bass-do-you-love-me.opus
+Do You Love Me\bottom-do-you-love-me.opus
+Do You Love Me\mid-do-you-love-me.opus
+Do You Love Me\sop-do-you-love-me.opus
+Do You Love Me\tenor-do-you-love-me.opus
+Do You Love Me\top-do-you-love-me.opus
 Do You Love Me\alto-do-you-love-me.aac
 Do You Love Me\bass-do-you-love-me.aac
 Do You Love Me\bottom-do-you-love-me.aac
@@ -70,10 +70,10 @@ Do You Love Me\mid-do-you-love-me.aac
 Do You Love Me\sop-do-you-love-me.aac
 Do You Love Me\tenor-do-you-love-me.aac
 Do You Love Me\top-do-you-love-me.aac
-Fairytale of New York\fairytale-alto24K.opus
-Fairytale of New York\fairytale-bass24K.opus
-Fairytale of New York\fairytale-soprano24K.opus
-Fairytale of New York\fairytale-tenor24K.opus
+Fairytale of New York\fairytale-alto.opus
+Fairytale of New York\fairytale-bass.opus
+Fairytale of New York\fairytale-soprano.opus
+Fairytale of New York\fairytale-tenor.opus
 Fairytale of New York\fairytale-alto.aac
 Fairytale of New York\fairytale-bass.aac
 Fairytale of New York\fairytale-soprano.aac
@@ -94,42 +94,42 @@ Have Yourself a Merry Little Xmas\alto-have-yourself-a-jazzy-christmas-.aac
 Have Yourself a Merry Little Xmas\bass-have-yourself-a-jazzy-christmas-.aac
 Have Yourself a Merry Little Xmas\sop-have-yourself-a-jazzy-christmas-.aac
 Have Yourself a Merry Little Xmas\tenor-have-yourself-a-jazzy-christmas-.aac
-Let It Snow\alto-let-it-snow-124K.opus
-Let It Snow\bass-let-it-snow24K.opus
-Let It Snow\sop-let-it-snow24K.opus
-Let It Snow\tenor-let-it-snow-wav24K.opus
+Let It Snow\alto-let-it-snow-1.opus
+Let It Snow\bass-let-it-snow.opus
+Let It Snow\sop-let-it-snow.opus
+Let It Snow\tenor-let-it-snow-wav.opus
 Let It Snow\alto-let-it-snow-1.aac
 Let It Snow\bass-let-it-snow.aac
 Let It Snow\sop-let-it-snow.aac
 Let It Snow\tenor-let-it-snow-wav.aac
-Mamacita Donde Esta Santa Claus\donde-esta-alto24K.opus
-Mamacita Donde Esta Santa Claus\donde-esta-bass24K.opus
-Mamacita Donde Esta Santa Claus\donde-esta-sop24K.opus
-Mamacita Donde Esta Santa Claus\donde-esta-ten24K.opus
+Mamacita Donde Esta Santa Claus\donde-esta-alto.opus
+Mamacita Donde Esta Santa Claus\donde-esta-bass.opus
+Mamacita Donde Esta Santa Claus\donde-esta-sop.opus
+Mamacita Donde Esta Santa Claus\donde-esta-ten.opus
 Mamacita Donde Esta Santa Claus\donde-esta-alto.aac
 Mamacita Donde Esta Santa Claus\donde-esta-bass.aac
 Mamacita Donde Esta Santa Claus\donde-esta-sop.aac
 Mamacita Donde Esta Santa Claus\donde-esta-ten.aac
-Man With The Bag\alto-man-with-the-bag-24K.opus
-Man With The Bag\bass-man-with-the-bag-24K.opus
-Man With The Bag\sop-man-with-the-bag-24K.opus
-Man With The Bag\tenor-man-with-the-bag-24K.opus
+Man With The Bag\alto-man-with-the-bag-.opus
+Man With The Bag\bass-man-with-the-bag-.opus
+Man With The Bag\sop-man-with-the-bag-.opus
+Man With The Bag\tenor-man-with-the-bag-.opus
 Man With The Bag\alto-man-with-the-bag-.aac
 Man With The Bag\bass-man-with-the-bag-.aac
 Man With The Bag\sop-man-with-the-bag-.aac
 Man With The Bag\tenor-man-with-the-bag-.aac
-Mele Kalikimaka\mele-kalikimaka-new-alto24K.opus
-Mele Kalikimaka\mele-kalikimaka-new-bass24K.opus
-Mele Kalikimaka\mele-kalikimaka-new-sop24K.opus
-Mele Kalikimaka\mele-kalikimaka-new-tenor24K.opus
+Mele Kalikimaka\mele-kalikimaka-new-alto.opus
+Mele Kalikimaka\mele-kalikimaka-new-bass.opus
+Mele Kalikimaka\mele-kalikimaka-new-sop.opus
+Mele Kalikimaka\mele-kalikimaka-new-tenor.opus
 Mele Kalikimaka\mele-kalikimaka-new-alto.aac
 Mele Kalikimaka\mele-kalikimaka-new-bass.aac
 Mele Kalikimaka\mele-kalikimaka-new-sop.aac
 Mele Kalikimaka\mele-kalikimaka-new-tenor.aac
-Nine to Five\alto-nine-to-five24K.opus
-Nine to Five\bass-nine-to-five24K.opus
-Nine to Five\sop-nine-to-five24K.opus
-Nine to Five\tenor-nine-to-five24K.opus
+Nine to Five\alto-nine-to-five.opus
+Nine to Five\bass-nine-to-five.opus
+Nine to Five\sop-nine-to-five.opus
+Nine to Five\tenor-nine-to-five.opus
 Nine to Five\alto-nine-to-five.aac
 Nine to Five\bass-nine-to-five.aac
 Nine to Five\sop-nine-to-five.aac
@@ -166,10 +166,10 @@ Stay\stay-alto.aac
 Stay\stay-bass.aac
 Stay\stay-sop.aac
 Stay\stay-tenor.aac
-Sway With Me\sway-alto24K.opus
-Sway With Me\sway-bass24K.opus
-Sway With Me\sway-sop24K.opus
-Sway With Me\sway-ten24K.opus
+Sway With Me\sway-alto.opus
+Sway With Me\sway-bass.opus
+Sway With Me\sway-sop.opus
+Sway With Me\sway-ten.opus
 Sway With Me\sway-alto.aac
 Sway With Me\sway-bass.aac
 Sway With Me\sway-sop.aac
