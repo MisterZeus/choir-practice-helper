@@ -29,7 +29,7 @@ let presetButtons = []
 let panningSliders = []
 
 const choirVoices = ['soprano', 'alto', 'tenor', 'bass', 'voice', 'top', 'middle', 'bottom']
-const SEEK_SKIP_SECONDS = 10
+const SEEK_SKIP_SECONDS = 5
 
 function restoreStateFromUrl() {
     const params = new URLSearchParams(window.location.search)
