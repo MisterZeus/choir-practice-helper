@@ -150,6 +150,14 @@ Santa Baby\alto-santa-baby-3.aac
 Santa Baby\bass-santa-baby-4.aac
 Santa Baby\sop-santa-baby-2.aac
 Santa Baby\tenor-santa-baby-1.aac
+Solid As A Rock\solid-as-a-rock-alto.opus
+Solid As A Rock\solid-as-a-rock-bass.opus
+Solid As A Rock\solid-as-a-rock-sop.opus
+Solid As A Rock\solid-as-a-rock-tenor.opus
+Solid As A Rock\solid-as-a-rock-alto.aac
+Solid As A Rock\solid-as-a-rock-bass.aac
+Solid As A Rock\solid-as-a-rock-sop.aac
+Solid As A Rock\solid-as-a-rock-tenor.aac
 Somewhere Over The Downland (B flat)\alto-somewhere-over-the-downland.opus
 Somewhere Over The Downland (B flat)\bass-somewhere-over-the-downland.opus
 Somewhere Over The Downland (B flat)\sop-somewhere-over-the-downland.opus
