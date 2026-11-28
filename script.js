@@ -214,21 +214,22 @@ function emitLoadProgress(cacheKey, phase, index, total) {
     songLoadProgressListeners.get(cacheKey)?.forEach((listener) => listener(phase, index, total))
 }
 
-async function fetchAudioBlobs(urls, cacheKey) {
-    const audioBlobs = []
-
-    for (let index = 0; index < urls.length; index += 1) {
+function fetchAudioBlobs(urls, cacheKey) {
+    return urls.map(async (url, index) => {
         emitLoadProgress(cacheKey, 'download', index + 1, urls.length)
 
-        const response = await fetch(urls[index])
-        if (!response.ok) {
-            throw new Error(`Could not fetch ${urls[index]}: ${response.status}`)
+        try {
+            const response = await fetch(url)
+            if (!response.ok) {
+                throw new Error(`Could not fetch ${url}: ${response.status}`)
+            }
+
+            return await response.blob()
+        } catch (error) {
+            songAudioBufferPrefetches.delete(cacheKey)
+            throw error
         }
-
-        audioBlobs.push(await response.blob())
-    }
-
-    return audioBlobs
+    })
 }
 
 async function prefetchSongAudioBuffers(folder) {
@@ -301,18 +302,24 @@ async function preloadSongAudioBuffers(folder) {
     const cacheKey = `${targetFolder}|${audioFileExtension}`
     if (!decodedAudioBufferCache.has(cacheKey)) {
         const decodePromise = (async () => {
-            const audioBlobs = await prefetchSongAudioBuffers(targetFolder)
             const context = getDecodingAudioContext()
+            const audioBlobPromises = await prefetchSongAudioBuffers(targetFolder)
 
-            const decodedBuffers = []
-            for (let index = 0; index < audioBlobs.length; index += 1) {
-                emitLoadProgress(cacheKey, 'decode', index + 1, audioBlobs.length)
+            const results = await Promise.allSettled(audioBlobPromises.map(async (audioBlobPromise, index) => {
+                const audioBlob = await audioBlobPromise
+                emitLoadProgress(cacheKey, 'decode', index + 1, audioBlobPromises.length)
 
                 // Firefox may detach buffers after decodeAudioData; decode from a fresh buffer each time.
-                const arrayBuffer = await audioBlobs[index].arrayBuffer()
-                decodedBuffers.push(await context.decodeAudioData(arrayBuffer))
-            }
-            return decodedBuffers
+                const arrayBuffer = await audioBlob.arrayBuffer()
+                return context.decodeAudioData(arrayBuffer)
+            }))
+
+            return results.map((result) => {
+                if (result.status === 'rejected') {
+                    throw result.reason
+                }
+                return result.value
+            })
         })().catch((error) => {
             decodedAudioBufferCache.delete(cacheKey)
             throw error
